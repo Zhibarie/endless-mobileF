@@ -17,6 +17,7 @@
 5. Run `gradlew.bat build` from the android directory.
 
 #### Notes
+
 - If gradle notifies you that you are missing the required ndk version, then install it via the sdk manager, and try again. 
 - Debug apk location
   - Linux: _endless-mobile/android/app/build/outputs/apk/debug/app-debug.apk_
