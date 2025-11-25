@@ -13,7 +13,7 @@
 
 #### Windows
 
-3. Run the *convert_linux_links_to_windows_links.ps1* to change the project's symbolic links from to a Windows format 
+3. Run the *convert_linux_links_to_windows_links.ps1* to change the project's symbolic links to a Windows format 
 4. Run `gradlew.bat buildDebug` from the android directory
 5. Run `gradlew.bat build` from the android directory.
 
