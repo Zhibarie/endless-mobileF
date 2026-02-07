@@ -359,7 +359,7 @@ bool LoadPanel::KeyDown(SDL_Keycode key, Uint16 mod, const Command &command, boo
 			}
 			else
 			{
-				GetUI()->Push(new Dialog(
+				GetUI().Push(new DialogPanel(
 					"The selected file does not appear to be a valid "
 					"endless-sky save game."));
 			}

@@ -98,6 +98,7 @@ add_library(main SHARED
    ${CMAKE_SOURCE_DIR}/../../../source/Bitset.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/BoardingPanel.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/Body.cpp
+   ${CMAKE_SOURCE_DIR}/../../../source/BookEntry.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/Camera.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/CaptureOdds.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/CargoHold.cpp
@@ -113,6 +114,7 @@ add_library(main SHARED
    ${CMAKE_SOURCE_DIR}/../../../source/Conversation.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/ConversationPanel.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/CoreStartData.cpp
+   ${CMAKE_SOURCE_DIR}/../../../source/CustomEvents.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/CrashState.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/DamageProfile.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/DataFile.cpp
@@ -120,7 +122,8 @@ add_library(main SHARED
    ${CMAKE_SOURCE_DIR}/../../../source/DataWriter.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/Date.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/Depreciation.cpp
-   ${CMAKE_SOURCE_DIR}/../../../source/Dialog.cpp
+   ${CMAKE_SOURCE_DIR}/../../../source/DialogPanel.cpp
+   ${CMAKE_SOURCE_DIR}/../../../source/DialogSettings.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/Dictionary.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/DistanceCalculationSettings.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/DistanceMap.cpp
@@ -128,6 +131,7 @@ add_library(main SHARED
    ${CMAKE_SOURCE_DIR}/../../../source/shader/DrawList.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/Dropdown.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/Effect.cpp
+   ${CMAKE_SOURCE_DIR}/../../../source/Endpoint.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/Engine.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/EscortDisplay.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/EsUuid.cpp
@@ -151,6 +155,7 @@ add_library(main SHARED
    ${CMAKE_SOURCE_DIR}/../../../source/GamePad.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/GamepadCursor.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/GamepadPanel.cpp
+   ${CMAKE_SOURCE_DIR}/../../../source/GameVersion.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/Gesture.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/Government.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/HailPanel.cpp
@@ -183,12 +188,14 @@ add_library(main SHARED
    ${CMAKE_SOURCE_DIR}/../../../source/MenuAnimationPanel.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/MenuPanel.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/MessageLogPanel.cpp
+   ${CMAKE_SOURCE_DIR}/../../../source/Message.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/Messages.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/Minable.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/MiniMap.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/Mission.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/MissionAction.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/MissionPanel.cpp
+   ${CMAKE_SOURCE_DIR}/../../../source/MissionTimer.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/Mortgage.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/audio/Music_stub.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/audio/player/MusicPlayer.cpp
@@ -249,7 +256,7 @@ add_library(main SHARED
    ${CMAKE_SOURCE_DIR}/../../../source/image/Sprite.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/image/SpriteSet.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/shader/SpriteShader.cpp
-   ${CMAKE_SOURCE_DIR}/../../../source/ShipNameDialog.cpp
+   ${CMAKE_SOURCE_DIR}/../../../source/ShipNameDialogPanel.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/shader/StarField.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/StartConditions.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/StartConditionsPanel.cpp

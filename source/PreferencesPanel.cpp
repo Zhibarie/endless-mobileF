@@ -305,7 +305,7 @@ bool PreferencesPanel::KeyDown(SDL_Keycode key, Uint16 mod, const Command &comma
 		SDL_Log("Plugin unzipped: %s", success ? "true": "false");
 		if (success)
 		{
-			GetUI()->Push(new Dialog(GetUI(), &UI::Quit, "Plugin installed. Endless Sky needs to be restarted."));
+			GetUI().Push(new DialogPanel(&GetUI(), &UI::Quit, "Plugin installed. Endless Sky needs to be restarted."));
 		}
 		SDL_Log("Dialog pushed");
 		// else error has already been reported
@@ -320,11 +320,11 @@ bool PreferencesPanel::KeyDown(SDL_Keycode key, Uint16 mod, const Command &comma
 			SDL_Log("Removing plugin %s", plugin->path.c_str());
 			if (Files::RmDir(plugin_path))
 			{
-				GetUI()->Push(new Dialog(GetUI(), &UI::Quit, "Plugin removed. Endless Sky needs to be restarted."));
+				GetUI().Push(new DialogPanel(&GetUI(), &UI::Quit, "Plugin removed. Endless Sky needs to be restarted."));
 			}
 			else
 			{
-				GetUI()->Push(new Dialog("Failed to remove plugin."));
+				GetUI().Push(new DialogPanel("Failed to remove plugin."));
 			}
 		}
 	}
