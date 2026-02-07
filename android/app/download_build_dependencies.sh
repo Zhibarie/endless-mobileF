@@ -7,8 +7,8 @@ echo "467b310903832b033fe56cd37720d1b73a6a3bd0171dbf6ff0b620385f4f76d0  libjpeg-
 tar xzf libjpeg-turbo.tar.gz -C ../jni/src
 
 echo "Downloading libpng"
-curl -Lo libpng.tar.gz https://download.sourceforge.net/libpng/libpng-1.6.54.tar.gz
-echo "472db714567391842e410090df5a37e0f5b2ec67148a3007678b0482d2ba5219  libpng.tar.gz" | sha256sum -c - || exit
+curl -Lo libpng.tar.gz https://download.sourceforge.net/libpng/libpng-1.6.37.tar.gz
+echo "daeb2620d829575513e35fecc83f0d3791a620b9b93d800b763542ece9390fb4  libpng.tar.gz" | sha256sum -c - || exit
 tar xzf libpng.tar.gz -C ../jni/src
 
 echo "Downloading SDL2"

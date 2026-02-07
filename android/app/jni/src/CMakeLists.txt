@@ -18,7 +18,6 @@ option(WITH_TURBOJPEG "" FALSE)
 add_subdirectory(libjpeg-turbo-2.1.3 EXCLUDE_FROM_ALL)
 
 option(PNG_SHARED "" OFF)
-option(PNG_SHARED "" ON)
 option(PNG_TESTS "" OFF)
 add_subdirectory(libpng-1.6.37       EXCLUDE_FROM_ALL)
 
