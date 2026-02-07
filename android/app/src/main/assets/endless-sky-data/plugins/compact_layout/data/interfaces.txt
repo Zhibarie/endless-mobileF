@@ -280,7 +280,7 @@ interface "hiring"
 		color "bright"
 		align right
 
-	line
+	fill
 		center -60 -46
 		dimensions 480 1
 
@@ -389,7 +389,7 @@ interface "hiring (small screen)"
 		color "bright"
 		align right
 
-	line
+	fill
 		center -60 -46
 		dimensions 480 1
 
@@ -488,7 +488,7 @@ interface "trade"
 	box "content"
 		from -310 -63 to 190 194
 
-	line
+	fill
 		center -60 -46
 		dimensions 480 1
 
@@ -518,7 +518,7 @@ interface "trade (small screen)"
 	box "content"
 		from -310 -63 to 190 194
 
-	line
+	fill
 		center -60 -46
 		dimensions 480 1
 
@@ -548,7 +548,7 @@ interface "bank"
 	box "content"
 		from -310 -63 to 190 214
 
-	line
+	fill
 		center -60 -46
 		dimensions 480 1
 
@@ -563,7 +563,7 @@ interface "bank (small screen)"
 	box "content"
 		from -310 -63 to 190 214
 
-	line
+	fill
 		center -60 -46
 		dimensions 480 1
 
@@ -575,7 +575,7 @@ interface "bank (small screen)"
 		dimensions 80 40
 
 interface "info panel"
-	line "bg"
+	fill "bg"
 		from 0 0 top left
 		to 0 0 bottom right
 		color "panel background"
@@ -611,7 +611,7 @@ interface "info panel"
 		to 500 0 bottom left
 
 	visible
-	line
+	fill
 		color "bright"
 		from 0 40 top left
 		to 6000 41 top right

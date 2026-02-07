@@ -53,7 +53,7 @@ void Shader::Load(const char *vertex, const char *fragment)
 		vector<GLchar> infoLog(maxLength);
 		glGetProgramInfoLog(program, maxLength, &maxLength, &infoLog[0]);
 		string error(infoLog.data());
-		Logger::LogError(error);
+		Logger::Log(error, Logger::Level::ERROR);
 
 		throw runtime_error("Linking OpenGL shader program failed.");
 	}
@@ -116,9 +116,9 @@ GLuint Shader::Compile(const char *str, GLenum type)
 				version += c;
 			}
 		}
-		if(glsl.find("ES") != std::string::npos)
+		if(glsl.find("GLSL ES") != string::npos)
 		{
-			version = "#version 300 es";
+			version += " es";
 		}
 		version += '\n';
 	}
@@ -145,7 +145,7 @@ GLuint Shader::Compile(const char *str, GLenum type)
 
 		glGetShaderInfoLog(object, SIZE, &length, message);
 		error += string(message, length);
-		Logger::LogError(error);
+		Logger::Log(error, Logger::Level::ERROR);
 		throw runtime_error("Shader compilation failed.");
 	}
 

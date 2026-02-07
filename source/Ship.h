@@ -120,7 +120,6 @@ public:
 	};
 
 	enum class CanFireResult {
-		INVALID,
 		NO_AMMO,
 		NO_ENERGY,
 		NO_FUEL,
@@ -281,6 +280,7 @@ public:
 	bool IsCapturable() const;
 	bool IsTargetable() const;
 	bool IsOverheated() const;
+	bool IsIonized() const;
 	bool IsDisabled() const;
 	bool IsBoarding() const;
 	bool IsLanding() const;
@@ -494,6 +494,7 @@ public:
 	const std::vector<Hardpoint> &Weapons() const;
 	// Check if we are able to fire the given weapon (i.e. there is enough
 	// energy, ammo, and fuel to fire it).
+	// Assume the weapon is valid.
 	CanFireResult CanFire(const Weapon *weapon) const;
 	// Fire the given weapon (i.e. deduct whatever energy, ammo, or fuel it uses
 	// and add whatever heat it generates). Assume that CanFire() is true.
@@ -518,7 +519,7 @@ public:
 
 	// Set this ship's targets.
 	void SetTargetShip(const std::shared_ptr<Ship> &ship);
-	void SetShipToAssist(const std::shared_ptr<Ship> &ship);
+	void SetShipToAssist(const std::weak_ptr<Ship> &ship);
 	void SetTargetStellar(const StellarObject *object);
 	// Set ship's target system (it should always be one jump / wormhole pass away).
 	void SetTargetSystem(const System *system);
@@ -674,7 +675,7 @@ private:
 	Outfit attributes;
 	Outfit baseAttributes;
 	bool addAttributes = false;
-	const Outfit *explosionWeapon = nullptr;
+	const Weapon *explosionWeapon = nullptr;
 	std::map<const Outfit *, int> outfits;
 	CargoHold cargo;
 	std::list<std::shared_ptr<Flotsam>> jettisoned;

@@ -156,7 +156,7 @@ void Dropdown::Draw()
 void Dropdown::DoDropdown(const Point &pos)
 {
 	auto p = std::make_shared<DroppedPanel>(this);
-	GetUI()->Push(p);
+	GetUI().Push(p);
 	p->SetMousePos(pos);
 }
 
@@ -208,7 +208,7 @@ bool Dropdown::DroppedPanel::Click(int x, int y, MouseButton, int clicks)
 			dd->changed_callback(dd->selected_index, dd->selected_string);
 	}
 
-	GetUI()->Pop(this);
+	GetUI().Pop(this);
 	// this pointer no longer safe to access.
 
 	return true;
@@ -243,7 +243,7 @@ bool Dropdown::DroppedPanel::Release(int x, int y, MouseButton)
 			if (dd->changed_callback)
 				dd->changed_callback(dd->selected_index, dd->selected_string);
 		}
-		GetUI()->Pop(this);
+		GetUI().Pop(this);
 		// this pointer no longer safe to access.
 	}
 	return true;
@@ -270,7 +270,7 @@ bool Dropdown::DroppedPanel::ControllerButtonDown(SDL_GameControllerButton butto
 				dd->changed_callback(dd->selected_index, dd->selected_string);
 		}
 	}
-	GetUI()->Pop(this);
+	GetUI().Pop(this);
 	return true;
 }
 

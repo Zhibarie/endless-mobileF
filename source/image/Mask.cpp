@@ -33,8 +33,8 @@ namespace {
 		const int numPixels = width * height;
 		auto LogError = [width, height, fileName](string reason)
 		{
-			Logger::LogError("Unable to create mask for " + to_string(width) + "x" + to_string(height)
-				+ " px image " + fileName + ": " + std::move(reason));
+			Logger::Log("Unable to create mask for " + to_string(width) + "x" + to_string(height)
+				+ " px image " + fileName + ": " + std::move(reason), Logger::Level::WARNING);
 		};
 		raw.clear();
 

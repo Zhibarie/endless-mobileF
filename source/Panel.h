@@ -97,7 +97,7 @@ public:
 	virtual void UpdateTooltipActivation();
 
 	// Move this back to protected once radial interface has been fixed.
-	UI *GetUI() const noexcept;
+	UI &GetUI() const noexcept;
 
 protected:
 	// Only override the ones you need; the default action is to return false.
@@ -132,7 +132,7 @@ protected:
 	void DrawBackdrop() const;
 
 	// Set this back once radial selection interface element has been fixed.
-	// UI *GetUI() const noexcept;
+	// UI &GetUI() const noexcept;
 	void SetUI(UI *ui);
 
 	// This is not for overriding, but for calling KeyDown with only one or two

@@ -38,7 +38,7 @@ struct Plugin;
 // UI panel for editing preferences, especially the key mappings.
 class PreferencesPanel : public Panel {
 public:
-	PreferencesPanel(PlayerInfo &player);
+	explicit PreferencesPanel(PlayerInfo &player);
 	virtual ~PreferencesPanel();
 
 	// Draw this panel.
@@ -92,10 +92,10 @@ private:
 	// this panel is closed due to the deadline blink preference changing.
 	bool recacheDeadlines = false;
 
-	int editing;
+	int editing = -1;
 	int editingGesture; // Why is this separate from editing?
-	int selected;
-	int hover;
+	int selected = 0;
+	int hover = -1;
 	int oldSelected;
 	int oldHover;
 	int latest;
@@ -120,7 +120,6 @@ private:
 	std::unique_ptr<RenderBuffer> pluginDescriptionBuffer;
 	ScrollVar<double> pluginListScroll;
 	ScrollVar<double> pluginDescriptionScroll;
-	int pluginListHeight = 0;
 
 	std::shared_ptr<Dropdown> controlTypeDropdown;
 };

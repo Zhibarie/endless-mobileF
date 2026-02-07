@@ -76,7 +76,7 @@ bool UI::Handle(const SDL_Event &event)
 			// TODO: move this zone then click logic into DoClick()
 			int x = Screen::Left() + event.button.x * 100 / Screen::Zoom();
 			int y = Screen::Top() + event.button.y * 100 / Screen::Zoom();
-			if(event.button.button == 1)
+			if(event.button.button == SDL_BUTTON_LEFT)
 				handled = (*it)->ZoneMouseDown(Point(x, y), event.button.which);
 			if(!handled)
 				handled = (*it)->DoClick(x, y, static_cast<MouseButton>(event.button.button), event.button.clicks);

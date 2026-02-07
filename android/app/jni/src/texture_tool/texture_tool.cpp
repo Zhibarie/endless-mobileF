@@ -610,20 +610,30 @@ public:
 			else
 			{
 				// endless sky uses a naming convention that looks like this:
-				// file[blendmode[frame_index]], where blendmode looks like:
-				//    + Additive blending mode
-				//    ^ in-between blending mode (It used tobe ~)
-				//    - normal blending mode (the default if absent)
-				//    = premultiplied blending mode
+				// file[blendmode[frame_index]][purpose],
+				//		blendmode looks like:
+				//       + Additive blending mode
+				//       ^ in-between blending mode (It used to be ~)
+				//       - normal blending mode (the default if absent)
+				//       = premultiplied blending mode
+				//    purpose is @xx
+				//       This is needs to be a different ktx file even if the prefix is the same.
+
+				
 				// If the blending mode is absent, then any number is just part
 				// of the name.
-				static const std::regex r("(.*?)(([^\\s\\w\\(\\)])\\d*?)?(\\.png|\\.jpg)", std::regex_constants::icase);
+				static const std::regex r("(.*?)(([^\\s\\w\\(\\)])\\d*?)?(@..)?(\\.png|\\.jpg)", std::regex_constants::icase);
 				std::smatch match;
 				if (std::regex_match(name, match, r))
 				{
 					++m_file_count;
-					auto& ktx = m_ktx_files[match[1].str().substr(prefix_length)];
+					std::string texture_purpose;
+					if (match[4].length())
+						texture_purpose = match[4].str();
+
+					auto& ktx = m_ktx_files[std::make_pair(match[1].str().substr(prefix_length), texture_purpose)];
 					ktx.frames.push_back(name);
+					ktx.texture_purpose = texture_purpose;
 					if (match[3].length())
 					{
 						if (match[3] == '-')
@@ -642,7 +652,7 @@ public:
 						ktx.mode = KtxFile::PREMULTIPLY;
 					}
 
-					if (match[4] == ".jpg" && (ktx.mode == KtxFile::NONE || ktx.mode == KtxFile::PREMULTIPLY))
+					if (match[5] == ".jpg" && (ktx.mode == KtxFile::NONE || ktx.mode == KtxFile::PREMULTIPLY))
 					{
 						// jpeg files have no alpha channel, so if we aren't using
 						// a special blending mode, just use RGB8 since it takes
@@ -666,7 +676,7 @@ public:
 	{
 		for (auto& kv: m_ktx_files)
 		{
-			std::string target_file = output_path + "/" + kv.first + "=.ktx";
+			std::string target_file = output_path + "/" + kv.first.first + "=" + kv.second.texture_purpose + ".ktx";
 			std::string target_path = target_file.substr(0, target_file.rfind('/'));
 			switch (kv.second.mode)
 			{
@@ -699,7 +709,7 @@ public:
 		std::cout << "[0/" << m_file_count << "]" << std::flush;
 		for (auto& kv: m_ktx_files)
 		{
-			std::string target_file = output_path + "/" + kv.first + "=.ktx";
+			std::string target_file = output_path + "/" + kv.first.first + "=" + kv.second.texture_purpose + ".ktx";
 			std::string target_path = target_file.substr(0, target_file.rfind('/'));
 			if (!mkdir_p(target_path))
 			{
@@ -724,7 +734,7 @@ public:
 				bool do_reduce = false;
 				// Don't reduce ui or menu panels, or the fonts. They look like
 				// garbage if we mess with them. Explicitly reduce the haze though
-				if (kv.first.substr(0, 10) == "_menu/haze")
+				if (kv.first.first.substr(0, 10) == "_menu/haze")
 				{
 					if (reduce_factor > 1 && img.Width() > 8 && img.Height() > 8)
 					{
@@ -732,9 +742,9 @@ public:
 						do_reduce = true;
 					}
 				}
-				else if(kv.first.substr(0, 3) != "ui/" &&
-					kv.first.substr(0, 6) != "_menu/" &&
-					kv.first.substr(0, 5) != "font/")
+				else if(kv.first.first.substr(0, 3) != "ui/" &&
+					kv.first.first.substr(0, 6) != "_menu/" &&
+					kv.first.first.substr(0, 5) != "font/")
 				{
 					if (reduce_factor > 1 && img.Width() * img.Height() > 250000)
 					{
@@ -823,9 +833,10 @@ private:
 		KtxFile::PremultiplyMode mode;
 		Etc::Image::Format format;
 		std::vector<std::string> frames;
+		std::string texture_purpose;
 	};
 
-	std::map<std::string, KtxComposition> m_ktx_files;
+	std::map<std::pair<std::string, std::string>, KtxComposition> m_ktx_files;
 
 	int m_file_count = 0;
 

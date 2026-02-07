@@ -19,16 +19,16 @@ this program. If not, see <https://www.gnu.org/licenses/>.
 #include "Command.h"
 #include "CrashState.h"
 #include "RadialSelectionPanel.h"
+#include "Weapon.h"
 #include "shader/RingShader.h"
 #include "comparators/ByGivenOrder.h"
 #include "CategoryList.h"
 #include "CoreStartData.h"
-#include "Dialog.h"
+#include "DialogPanel.h"
 #include "Interface.h"
 #include "text/Font.h"
 #include "text/FontSet.h"
 #include "text/Format.h"
-#include "FrameTimer.h"
 #include "GameData.h"
 #include "Government.h"
 #include "HailPanel.h"
@@ -37,13 +37,11 @@ this program. If not, see <https://www.gnu.org/licenses/>.
 #include "MessageLogPanel.h"
 #include "Messages.h"
 #include "Mission.h"
-#include "Phrase.h"
 #include "Planet.h"
 #include "PlanetPanel.h"
 #include "PlayerInfo.h"
 #include "PlayerInfoPanel.h"
 #include "Preferences.h"
-#include "Screen.h"
 #include "Ship.h"
 #include "ShipEvent.h"
 #include "StellarObject.h"
@@ -77,7 +75,7 @@ void MainPanel::Step()
 
 	// Depending on what UI element is on top, the game is "paused." This
 	// checks only already-drawn panels.
-	bool isActive = GetUI()->IsTop(this);
+	bool isActive = GetUI().IsTop(this);
 
 	// If the player is dead, don't show anything.
 	if(player.IsDead())
@@ -86,17 +84,17 @@ void MainPanel::Step()
 	// Display any requested panels.
 	if(show.Has(Command::MAP))
 	{
-		GetUI()->Push(new MapDetailPanel(player));
+		GetUI().Push(new MapDetailPanel(player));
 		isActive = false;
 	}
 	else if(show.Has(Command::INFO))
 	{
-		GetUI()->Push(new PlayerInfoPanel(player));
+		GetUI().Push(new PlayerInfoPanel(player));
 		isActive = false;
 	}
 	else if(show.Has(Command::MESSAGE_LOG))
 	{
-		GetUI()->Push(new MessageLogPanel());
+		GetUI().Push(new MessageLogPanel());
 		isActive = false;
 	}
 	else if(show.Has(Command::HAIL_PLANET)) // Mobile specific
@@ -111,7 +109,7 @@ void MainPanel::Step()
 	// will call this object's OnCallback() function;
 	if(isActive && player.GetPlanet() && !player.GetPlanet()->IsWormhole())
 	{
-		GetUI()->Push(new PlanetPanel(player, bind(&MainPanel::OnCallback, this)));
+		GetUI().Push(new PlanetPanel(player, bind(&MainPanel::OnCallback, this)));
 		player.Land(GetUI());
 		// Save on landing, in case the app is killed uncleanly
 		// Only auto-load on landing if the game is fully loaded. otherwise,
@@ -123,16 +121,18 @@ void MainPanel::Step()
 		isActive = false;
 	}
 
-	// Offer the next available entering mission.
-	if(isActive && player.HasAvailableEnteringMissions() && player.Flagship())
+	// Offer the next available in-flight mission.
+	if(isActive && player.HasAvailableInflightMissions() && player.Flagship())
 	{
-		Mission *mission = player.EnteringMission();
+		Mission *mission = player.TransitionMission();
+		if(!mission)
+			mission = player.EnteringMission();
 		if(mission)
-			mission->Do(Mission::OFFER, player, GetUI());
+			mission->Do(Mission::OFFER, player, &GetUI());
 		else
-			player.HandleBlockedEnteringMissions(GetUI());
+			player.HandleBlockedInflightMissions(GetUI());
 		// Determine if a Dialog or ConversationPanel is being drawn next frame.
-		isActive = (GetUI()->Top().get() == this);
+		isActive = (GetUI().Top().get() == this);
 	}
 
 	// Display any relevant help/tutorial messages.
@@ -140,11 +140,14 @@ void MainPanel::Step()
 		isActive = !ShowHelp(false);
 
 	// Poll zones for any commands that should also be active.
-	Command zoneCommands = GetUI()->ZoneCommands();
+	Command zoneCommands = GetUI().ZoneCommands();
 	if(!(zoneCommands == Command()))
 		Command::InjectOnceNoEvent(zoneCommands);
 
 	engine.Step(isActive);
+
+	if(isActive && !engine.IsPaused())
+		player.StepMissionTimers(GetUI());
 
 	// Splice new events onto the eventQueue for (eventual) handling. No
 	// other classes use Engine::Events() after Engine::Step() completes.
@@ -164,7 +167,6 @@ void MainPanel::Step()
 
 void MainPanel::Draw()
 {
-	FrameTimer loadTimer;
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	engine.Draw();
@@ -183,22 +185,7 @@ void MainPanel::Draw()
 			isDragging = false;
 	}
 
-	if(Preferences::Has("Show CPU / GPU load"))
-	{
-		string loadString = to_string(lround(load * 100.)) + "% GPU";
-		const Color &color = *GameData::Colors().Get("medium");
-		FontSet::Get(14).Draw(loadString, Point(10., Screen::Height() * -.5 + 5.), color);
-
-		loadSum += loadTimer.Time();
-		if(++loadCount == 60)
-		{
-			load = loadSum;
-			loadSum = 0.;
-			loadCount = 0;
-		}
-	}
-
-	bool isActive = (GetUI()->Top().get() == this);
+	bool isActive = (GetUI().Top().get() == this);
 	if (isActive && Preferences::Has("Show buttons on map"))
 	{
 		Information info;
@@ -287,7 +274,7 @@ void MainPanel::Draw()
 			bool hasSecondaryWeapon = false;
 			for (auto& outfit: player.Flagship()->Outfits())
 			{
-				if (outfit.first->Icon())
+				if (outfit.first->GetWeapon())
 				{
 					hasSecondaryWeapon = true;
 					break;
@@ -313,7 +300,7 @@ void MainPanel::Draw()
 					else if (selectedWeapons.size() == 1)
 					{
 						info.SetCondition("secondary selected");
-						SpriteShader::Draw((*selectedWeapons.begin())->Icon(), icon_box.Center());
+						SpriteShader::Draw((*selectedWeapons.begin())->GetWeapon()->Icon(), icon_box.Center());
 					}
 					else
 					{
@@ -382,14 +369,15 @@ bool MainPanel::KeyDown(SDL_Keycode key, Uint16 mod, const Command &command, boo
 	{
 		bool newValue = !Preferences::Has("Turrets focus fire");
 		Preferences::Set("Turrets focus fire", newValue);
-		Messages::Add("Turret tracking mode set to: " + string(newValue ? "focused" : "opportunistic") + ".",
-			Messages::Importance::High);
+		Messages::Add(*GameData::Messages().Get(newValue ?
+			"turret tracking focused" : "turret tracking opportunistic"));
 	}
 	else if(command.Has(Command::AMMO))
 	{
 		Preferences::ToggleAmmoUsage();
-		Messages::Add("Your escorts will now expend ammo: " + Preferences::AmmoUsage() + ".",
-			Messages::Importance::High);
+		Messages::Add(*GameData::Messages().Get(
+			Preferences::Has("Escorts expend ammo") ? (Preferences::Has("Escorts use ammo frugally") ?
+			"expend ammo frugally" : "expend ammo always") : "expend ammo never"));
 	}
 	else if((key == SDLK_MINUS || key == SDLK_KP_MINUS) && !command)
 		Preferences::ZoomViewOut();
@@ -409,13 +397,17 @@ bool MainPanel::KeyDown(SDL_Keycode key, Uint16 mod, const Command &command, boo
 
 bool MainPanel::Click(int x, int y, MouseButton button, int clicks)
 {
-	if(button == MouseButton::RIGHT)
+	switch(button)
 	{
-		engine.RClick(Point(x, y));
-		return true;
+		case MouseButton::MIDDLE:
+		case MouseButton::RIGHT:
+			engine.RightOrMiddleClick(Point(x, y), button);
+			return true;
+		case MouseButton::LEFT:
+			break;
+		default:
+			return false;
 	}
-	if(button != MouseButton::LEFT)
-		return false;
 
 	// Don't respond to clicks if another panel is active.
 	if(!canClick)
@@ -490,7 +482,7 @@ bool MainPanel::FingerDown(int x, int y, int fid)
 		return false;
 
 	// If the gui is active, check for input
-	bool isActive = (GetUI()->Top().get() == this);
+	bool isActive = (GetUI().Top().get() == this);
 	if (isActive)
 	{
 		// Check for zoom events
@@ -616,7 +608,7 @@ bool MainPanel::ControllerButtonDown(SDL_GameControllerButton	button)
 			selection->AddOption(Command::HAIL);
 		if(canCloak)
 			selection->AddOption(Command::CLOAK);
-		GetUI()->Push(selection);
+		GetUI().Push(selection);
 		return true;
 	}
 	return false;
@@ -722,7 +714,7 @@ void MainPanel::ShowScanDialog(const ShipEvent &event)
 					out << "\t" << it.second << " " << it.first << "\n";
 		}
 	}
-	GetUI()->Push(new Dialog(out.str()));
+	GetUI().Push(new DialogPanel(out.str()));
 }
 
 
@@ -744,9 +736,9 @@ bool MainPanel::ShowHailPanel(bool planet_only)
 		target.reset();
 
 	if(flagship->IsEnteringHyperspace())
-		Messages::Add("Unable to send hail: your flagship is entering hyperspace.", Messages::Importance::Highest);
+		Messages::Add(*GameData::Messages().Get("cannot hail while jumping"));
 	else if(flagship->IsCloaked() && !flagship->Attributes().Get("cloaked communication"))
-		Messages::Add("Unable to send hail: your flagship is cloaked.", Messages::Importance::Highest);
+		Messages::Add(*GameData::Messages().Get("cannot hail while cloaked"));
 	else if(target && !planet_only)
 	{
 		// If the target is out of system, always report a generic response
@@ -754,13 +746,13 @@ bool MainPanel::ShowHailPanel(bool planet_only)
 		// not. If it's in system and jumping, report that.
 		if(target->Zoom() < 1. || target->IsDestroyed() || target->GetSystem() != player.GetSystem()
 				|| target->IsCloaked())
-			Messages::Add("Unable to hail target " + target->Noun() + ".", Messages::Importance::Highest);
+			Messages::Add({"Unable to hail target " + target->Noun() + ".", GameData::MessageCategories().Get("high")});
 		else if(target->IsEnteringHyperspace())
-			Messages::Add("Unable to send hail: " + target->Noun() + " is entering hyperspace.",
-				Messages::Importance::Highest);
+			Messages::Add({"Unable to send hail: " + target->Noun() + " is entering hyperspace.",
+				GameData::MessageCategories().Get("high")});
 		else
 		{
-			GetUI()->Push(new HailPanel(player, target,
+			GetUI().Push(new HailPanel(player, target,
 				[&](const Government *bribed) { MainPanel::OnBribeCallback(bribed); }));
 			return true;
 		}
@@ -769,23 +761,20 @@ bool MainPanel::ShowHailPanel(bool planet_only)
 	{
 		const Planet *planet = flagship->GetTargetStellar()->GetPlanet();
 		if(!planet)
-			Messages::Add("Unable to send hail.", Messages::Importance::Highest);
+			Messages::Add(*GameData::Messages().Get("cannot hail"));
 		else if(planet->IsWormhole())
-		{
-			static const Phrase *wormholeHail = GameData::Phrases().Get("wormhole hail");
-			Messages::Add(wormholeHail->Get(), Messages::Importance::Highest);
-		}
+			Messages::Add(*GameData::Messages().Get("wormhole hail"));
 		else if(planet->IsInhabited())
 		{
-			GetUI()->Push(new HailPanel(player, flagship->GetTargetStellar()));
+			GetUI().Push(new HailPanel(player, flagship->GetTargetStellar()));
 			return true;
 		}
 		else
-			Messages::Add("Unable to send hail: " + planet->Noun() + " is not inhabited.",
-				Messages::Importance::Highest);
+			Messages::Add({"Unable to send hail: " + planet->Noun() + " is not inhabited.",
+				GameData::MessageCategories().Get("high")});
 	}
 	else
-		Messages::Add("Unable to send hail: no target selected.", Messages::Importance::Highest);
+		Messages::Add(*GameData::Messages().Get("cannot hail without target"));
 
 	return false;
 }
@@ -930,7 +919,7 @@ void MainPanel::StepEvents(bool &isActive)
 		if(!handledFront)
 			player.HandleEvent(event, GetUI());
 		handledFront = true;
-		isActive = (GetUI()->Top().get() == this);
+		isActive = (GetUI().Top().get() == this);
 
 		// If we can't safely display a new UI element (i.e. an active
 		// mission created a UI element), then stop processing events
@@ -957,12 +946,12 @@ void MainPanel::StepEvents(bool &isActive)
 			auto boardedShip = event.Target();
 			Mission *mission = player.BoardingMission(boardedShip);
 			if(mission && mission->HasSpace(*flagship))
-				mission->Do(Mission::OFFER, player, GetUI(), boardedShip);
+				mission->Do(Mission::OFFER, player, &GetUI(), boardedShip);
 			else if(mission)
-				player.HandleBlockedMissions((event.Type() & ShipEvent::BOARD)
-						? Mission::BOARDING : Mission::ASSISTING, GetUI());
+				player.HandleBlockedMissions((event.Type() & ShipEvent::BOARD) ? Mission::BOARDING : Mission::ASSISTING,
+					GetUI());
 			// Determine if a Dialog or ConversationPanel is being drawn next frame.
-			isActive = (GetUI()->Top().get() == this);
+			isActive = (GetUI().Top().get() == this);
 
 			// Confirm that this event's target is not destroyed and still an
 			// enemy before showing the BoardingPanel (as a mission NPC's
@@ -976,7 +965,7 @@ void MainPanel::StepEvents(bool &isActive)
 					&& boardedShip->GetGovernment()->IsEnemy())
 			{
 				// Either no mission activated, or the one that did was "silent."
-				GetUI()->Push(new BoardingPanel(player, boardedShip));
+				GetUI().Push(new BoardingPanel(player, boardedShip));
 				isActive = false;
 			}
 		}
@@ -991,10 +980,10 @@ void MainPanel::StepEvents(bool &isActive)
 			}
 			else if(event.TargetGovernment() && event.TargetGovernment()->IsPlayer())
 			{
-				string message = actor->Fine(player, event.Type(), &*event.Target());
+				string message = actor->Fine(player, event.Type(), &*event.Target()).second;
 				if(!message.empty())
 				{
-					GetUI()->Push(new Dialog(message));
+					GetUI().Push(new DialogPanel(message));
 					isActive = false;
 				}
 			}

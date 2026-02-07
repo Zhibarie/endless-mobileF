@@ -146,8 +146,12 @@ void Interface::Load(const DataNode &node)
 				elements.push_back(make_unique<BarElement>(child, anchor));
 			else if(key == "pointer")
 				elements.push_back(make_unique<PointerElement>(child, anchor));
-			else if(key == "line")
-				elements.push_back(make_unique<LineElement>(child, anchor));
+			else if(key == "fill" || key == "line")
+			{
+				if(key == "line")
+					child.PrintTrace("\"line\" is deprecated, use \"fill\" instead:");
+				elements.push_back(make_unique<FillElement>(child, anchor));
+			}
 			else if(key == "uirect")
 				elements.emplace_back(new UiRectElement(child, anchor));
 			else if(key == "radial")
@@ -953,10 +957,10 @@ void Interface::PointerElement::Draw(const Rectangle &rect, const Information &i
 
 
 
-// Members of the LineElement class:
+// Members of the FillElement class:
 
 // Constructor.
-Interface::LineElement::LineElement(const DataNode &node, const Point &globalAnchor)
+Interface::FillElement::FillElement(const DataNode &node, const Point &globalAnchor)
 {
 	// This function will call ParseLine() for any line it does not recognize.
 	Load(node, globalAnchor);
@@ -970,7 +974,7 @@ Interface::LineElement::LineElement(const DataNode &node, const Point &globalAnc
 
 // Parse the given data line: one that is not recognized by Element
 // itself. This returns false if it does not recognize the line, either.
-bool Interface::LineElement::ParseLine(const DataNode &node)
+bool Interface::FillElement::ParseLine(const DataNode &node)
 {
 	if(node.Token(0) == "color" && node.Size() >= 2)
 		color = GameData::Colors().Get(node.Token(1));
@@ -983,7 +987,7 @@ bool Interface::LineElement::ParseLine(const DataNode &node)
 
 
 // Draw this element in the given rectangle.
-void Interface::LineElement::Draw(const Rectangle &rect, const Information &info, int state) const
+void Interface::FillElement::Draw(const Rectangle &rect, const Information &info, int state) const
 {
 	// Avoid crashes for malformed interface elements that are not fully loaded.
 	if(!from.Get() && !to.Get())
@@ -1132,7 +1136,7 @@ void Interface::RadialSelectionElement::Place(const Rectangle &bounds, Panel *pa
 			radial_selection->ReleaseWithAxisZero(static_cast<SDL_GameControllerAxis>(e.id));
 			break;
 		}
-		panel->GetUI()->Push(radial_selection);
+		panel->GetUI().Push(radial_selection);
 	};
 	if(radius)
 		panel->AddZone(bounds.Center(), radius, OnTrigger);

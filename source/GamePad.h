@@ -16,8 +16,9 @@ PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 
 #include "Point.h"
 
-#include <vector>
+#include <cstdint>
 #include <string>
+#include <vector>
 
 // GamePad state. It gets updated via SDL events and all users of it access this
 // class to get it. No direct queries to SDL for getting it.

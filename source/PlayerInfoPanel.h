@@ -99,6 +99,9 @@ private:
 
 	// When reordering ships, the names of ships being moved are displayed alongside the cursor.
 	bool isDragging = false;
+
+	bool checkedHelp = false;
+	
 	Point dragPoint;
 
 	Point scrollPos;

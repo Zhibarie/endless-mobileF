@@ -28,6 +28,7 @@ this program. If not, see <https://www.gnu.org/licenses/>.
 #include "EscortDisplay.h"
 #include "Information.h"
 #include "MiniMap.h"
+#include "MouseButton.h"
 #include "PlanetLabel.h"
 #include "Point.h"
 #include "Preferences.h"
@@ -96,7 +97,7 @@ public:
 
 	// Select the object the player clicked on.
 	void Click(const Point &from, const Point &to, bool hasShift, bool hasControl);
-	void RClick(const Point &point);
+	void RightOrMiddleClick(const Point &point, MouseButton button);
 	void SelectGroup(int group, bool hasShift, bool hasControl);
 
 	// Touchscreen controls
@@ -320,7 +321,7 @@ private:
 	bool doClick = false;
 	bool hasShift = false;
 	bool hasControl = false;
-	bool isRightClick = false;
+	MouseButton mouseButton = MouseButton::NONE;
 	bool isRadarClick = false;
 	bool isTouch = false;
 	int isFingerDown = -1;
@@ -341,8 +342,4 @@ private:
 	Zoom zoom;
 	// Tracks the next zoom change so that objects aren't drawn at different zooms in a single frame.
 	Zoom nextZoom;
-
-	double load = 0.;
-	int loadCount = 0;
-	double loadSum = 0.;
 };

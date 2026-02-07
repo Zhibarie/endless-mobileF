@@ -66,7 +66,8 @@ bool Sound::Load(const filesystem::path &path, const string &name)
 		uint32_t bytes = ReadHeader(in, AudioSupplier::SAMPLE_RATE);
 		if(!bytes)
 		{
-			Logger::LogError("WAV file uses an unsupported format. Only 44100Hz little-endian 16-bit PCM is supported.");
+			Logger::Log("WAV file uses an unsupported format. Only 44100Hz little-endian 16-bit PCM is supported.", 
+			        Logger::Level::WARNING);
 			return false;
 		}
 		data.resize(bytes);
@@ -77,7 +78,8 @@ bool Sound::Load(const filesystem::path &path, const string &name)
 	{
 		if(!ReadMP3(in, data, AudioSupplier::SAMPLE_RATE))
 		{
-			Logger::LogError("MP3 file uses an unsupported format. Only 44100Hz mono is supported.");
+			Logger::Log("MP3 file uses an unsupported format. Only 44100Hz mono is supported.",
+				Logger::Level::WARNING);
 			return false;
 		}
 	}

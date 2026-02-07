@@ -14,7 +14,7 @@ this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
 #include "GamepadPanel.h"
-#include "Dialog.h"
+#include "DialogPanel.h"
 #include "shader/FillShader.h"
 #include "GamePad.h"
 #include "Preferences.h"
@@ -118,7 +118,7 @@ GamepadPanel::GamepadPanel():
 
 void GamepadPanel::Step()
 {
-	if(!GetUI()->IsTop(this))
+	if(!GetUI().IsTop(this))
 		return; // waiting for dialog to quit
 
 	if(reloadGamepad)
@@ -362,7 +362,7 @@ bool GamepadPanel::KeyDown(SDL_Keycode key, Uint16 mod, const Command &command, 
 	if(key == 'b' || key == SDLK_ESCAPE || key == SDLK_AC_BACK  || (key == 'w' && control))
 	{
 		if(remapIdx == -1)
-			GetUI()->Pop(this); 	// quit the dialog
+			GetUI().Pop(this); 	// quit the dialog
 		else
 		{
 			// Skip this mapping
@@ -391,7 +391,7 @@ bool GamepadPanel::KeyDown(SDL_Keycode key, Uint16 mod, const Command &command, 
 
 		GamePad::BeginAxisCalibration();
 		startRemap = true;
-		GetUI()->Push(new Dialog(
+		GetUI().Push(new DialogPanel(
 			"Please move do the following:\n\n"
 			"1. Slowly move each joystick to its maximum and minimum position in each axis\n\n"
 			"2. Slowly move each trigger to its maximum and minimum position\n\n"
