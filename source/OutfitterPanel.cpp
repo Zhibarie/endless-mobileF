@@ -1284,22 +1284,6 @@ void OutfitterPanel::DrawButtons()
 	DrawButton("_Leave", Rectangle(Point(buttonCenterX + buttonOffsetX * 1, rowBaseY + rowOffsetY * 2), buttonSize),
 		true, hoverButton == 'l', 'l');
 
-	// Draw the Modifier hover text that appears below the buttons when a modifier is being applied.
-	int modifier = Modifier();
-	if(modifier > 1)
-	{
-		string mod = "x " + to_string(modifier);
-		selected_quantity->SetSelected(to_string(modifier));
-		quantity_is_modifier = true;
-	}
-	else if (quantity_is_modifier)
-	{
-		// User has released modifier keys. Reset quantity dropdown to 1x
-		selected_quantity->SetSelected("1");
-		quantity_is_modifier = false;
-	}
-
-	// TODO: Move this to the correct position
 	font.Draw("Quantity:", Screen::BottomRight() - Point(240, 33), dim);
 
 	const Point sqCenter = Screen::BottomRight() - Point(150, 25);

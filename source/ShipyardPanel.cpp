@@ -234,6 +234,11 @@ void ShipyardPanel::DrawButtons()
 		Rectangle(Point(buttonCenterX + buttonOffsetX * 1, rowBaseY + rowOffsetY * 1), buttonSize),
 		true, hoverButton == 'l', 'l');
 
+	font.Draw("Quantity:", Screen::BottomRight() - Point(240, 33), dim);
+
+	const Point sqCenter = Screen::BottomRight() - Point(150, 25);
+	selected_quantity->SetPosition(Rectangle(sqCenter, {45, 20}));
+
 	// Draw tooltips for the button being hovered over:
 	string tooltip = GameData::Tooltip(string("shipyard: ") + hoverButton);
 	if(!tooltip.empty())

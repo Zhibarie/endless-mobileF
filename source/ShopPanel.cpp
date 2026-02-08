@@ -152,6 +152,20 @@ void ShopPanel::Draw()
 {
 	glClear(GL_COLOR_BUFFER_BIT);
 
+	// If the modifier is set, then change the quantity in the dropdown.
+	int modifier = Modifier();
+	if(modifier > 1)
+	{
+		selected_quantity->SetSelected(to_string(modifier));
+		quantity_is_modifier = true;
+	}
+	else if (quantity_is_modifier)
+	{
+		// User has released modifier keys. Reset quantity dropdown to 1x
+		selected_quantity->SetSelected("1");
+		quantity_is_modifier = false;
+	}
+
 	// These get added by both DrawMain and DrawDetailsSidebar, so clear them here.
 	categoryZones.clear();
 	DrawMain();
