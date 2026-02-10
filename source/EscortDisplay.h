@@ -73,7 +73,7 @@ private:
 
 
 private:
-	void MergeStacks(int maxHeight) const;
+	void MergeStacks(int columns, int maxHeight) const;
 
 
 private:
