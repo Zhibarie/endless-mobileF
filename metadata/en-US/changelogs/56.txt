@@ -1,0 +1,4 @@
+* Upstream 0.11.0
+* Shader fixes for buggy gles implementations
+* Virtual joystick now uses double-tap for afterburner
+* Talk to planet command
