@@ -93,8 +93,8 @@ const string &Sprite::Name() const
 void Sprite::AddFrames(ImageBuffer &buffer1x, ImageBuffer &buffer2x, bool noReduction)
 {
 	// The 1x image determines the dimensions of the sprite's size.
-	width = buffer1x.Width();
-	height = buffer1x.Height();
+	width = buffer1x.DisplayWidth();
+	height = buffer1x.DisplayHeight();
 	frames = buffer1x.Frames();
 	// Do nothing else if the buffer is empty.
 	// (The buffer can be empty yet still have a width and height if uploading is disabled.)
