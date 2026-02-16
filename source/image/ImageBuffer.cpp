@@ -222,6 +222,10 @@ uint8_t ImageBuffer::GetAlpha(int frame, int x, int y) const
 	      || compressed_format == 0x9279)   // ETC2 SRGBA
 	{
 		Etc2RGBA etc(pixels, width, height);
+		// If the image is pre-scaled, then x/y will be the display size, not
+		// the image size.
+		x = x * width / display_width;
+		y = y * height / display_height;
 		return etc.Alpha(frame, x, y);
 	}
 	else

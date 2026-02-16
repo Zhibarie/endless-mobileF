@@ -28,8 +28,8 @@ namespace {
 	// Trace out outlines from an image frame.
 	void Trace(const ImageBuffer &image, int frame, vector<vector<Point>> &raw, const string &fileName)
 	{
-		const int width = image.Width();
-		const int height = image.Height();
+		const int width = image.DisplayWidth();
+		const int height = image.DisplayHeight();
 		const int numPixels = width * height;
 		auto LogError = [width, height, fileName](string reason)
 		{
@@ -294,7 +294,7 @@ void Mask::Create(const ImageBuffer &image, int frame, const string &fileName)
 	outlines.reserve(raw.size());
 	for(auto &edge : raw)
 	{
-		SmoothAndCenter(edge, Point(image.Width(), image.Height()));
+		SmoothAndCenter(edge, Point(image.DisplayWidth(), image.DisplayHeight()));
 
 		auto outline = Simplify(edge);
 		// Skip any outlines that have no area.
