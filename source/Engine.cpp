@@ -398,7 +398,8 @@ void Engine::Place()
 	// that all special ships have been repositioned.
 	ships.splice(ships.end(), newShips);
 
-	camera.SnapTo(flagship->Center());
+	if (flagship) // Mobile fix to upstream bug. without this check, it crashes if you land on a quarg world with a quarg outfit.
+		camera.SnapTo(flagship->Center());
 
 	player.SetPlanet(nullptr);
 }
