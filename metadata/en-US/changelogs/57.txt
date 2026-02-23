@@ -1,0 +1,1 @@
+* Fix scaling issue for large sprites
