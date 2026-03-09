@@ -239,7 +239,8 @@ uint8_t ImageBuffer::GetAlpha(int frame, int x, int y) const
 
 void ImageBuffer::ShrinkToHalfSize()
 {
-	assert(!compressed_format);
+	if (compressed_format)
+		return;
 	ImageBuffer result(frames);
 	result.Allocate(width / 2, height / 2);
 

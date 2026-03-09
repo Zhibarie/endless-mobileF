@@ -188,7 +188,7 @@ void ImageSet::Load() noexcept(false)
 {
 	assert(framePaths[0].empty() && "should call ValidateFrames before calling Load");
 
-	if (Preferences::Has("Reduced graphics") && paths[0].size() > 10)
+	if (Preferences::LargeGraphicsReduction() != Preferences::LargeGraphicsReduction::OFF && paths[0].size() > 10)
 	{
 		// remove every other frame
 		for (ssize_t i = paths[0].size() - 1; i >= 0; i -= 2)

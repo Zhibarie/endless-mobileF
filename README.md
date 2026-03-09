@@ -15,6 +15,6 @@ If you are feeling particularly brave, you can try out one of the [debug apks ge
 ## Desktop build
 Development is done using [CMake](https://cmake.org) to compile the project. Most popular IDEs are supported through their respective CMake integration.
 
-For full installation instructions, consult the [Build Instructions](docs/readme-cmake.md) readme.
+For full installation instructions, consult the [Build Instructions](docs/readme-developer.md) readme.
 ## Android build
 Android builds are self contained within the android/ folder. See the [Build Instructions](https://github.com/thewierdnut/endless-mobile/blob/android/android/build_instructions.md) there for more details.

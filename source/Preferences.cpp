@@ -242,7 +242,7 @@ void Preferences::Load()
 		if (static_cast<uint64_t>(si.totalram) * si.mem_unit < static_cast<uint64_t>(4) * 1024*1024*1024)
 		{
 			SDL_Log("Detected low memory... defaulting Reduced graphics to true");
-			settings["Reduced graphics"] = true;
+			largeGraphicsReductionIndex = static_cast<int>(LargeGraphicsReduction::ALL);
 		}
 	}
 #endif
@@ -355,7 +355,7 @@ void Preferences::Load()
 	{
 		// Force low graphics mode to on.
 		SDL_Log("Previous loading crashed... defaulting Reduced graphics to true");
-		settings["Reduced graphics"] = true;
+		largeGraphicsReductionIndex = static_cast<int>(LargeGraphicsReduction::ALL);
 	}
 }
 

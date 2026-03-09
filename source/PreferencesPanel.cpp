@@ -941,7 +941,6 @@ void PreferencesPanel::DrawSettings()
 		"Graphics",
 		CAMERA_ACCELERATION,
 		"Render motion blur",
-		"Reduced graphics",
 		"Draw background haze",
 		"Draw starfield",
 		"Fixed starfield zoom",
