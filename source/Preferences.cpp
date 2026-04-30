@@ -71,7 +71,7 @@ namespace {
 	int vsyncIndex = 1;
 
 	const vector<string> CAMERA_ACCELERATION_SETTINGS = {"off", "on", "reversed"};
-	int cameraAccelerationIndex = 1;
+	int cameraAccelerationIndex = 0;
 
 	const map<string, SoundCategory> VOLUME_SETTINGS = {
 		{"volume", SoundCategory::MASTER},
@@ -155,6 +155,9 @@ namespace {
 	const vector<string> TURRET_OVERLAYS_SETTINGS = {"off", "always on", "blindspots only"};
 	int turretOverlaysIndex = 2;
 
+	const vector<string> HIGHLIGHT_SHIPS_SETTINGS = {"off", "flagship", "owned ships", "all"};
+	int highlightShipsIndex = 0;
+
 	const vector<string> AUTO_AIM_SETTINGS = {"off", "always on", "when firing"};
 	int autoAimIndex = 2;
 
@@ -186,6 +189,12 @@ namespace {
 	const vector<string> LARGE_GRAPHICS_REDUCTION_SETTINGS = {"off", "largest only", "all"};
 	int largeGraphicsReductionIndex = 0;
 
+	const vector<string> TRIBUTE_CONFIRMATION_SETTINGS = {"off", "friendly only", "always"};
+	int tributeConfirmationIndex = 1;
+
+	const vector<string> AMMO_REFILL_SETTINGS = {"never", "ask", "when free", "always"};
+	int ammoRefillIndex = 1;
+
 	const string BLOCK_SCREEN_SAVER = "Block screen saver";
 
 	int previousSaveCount = 3;
@@ -205,7 +214,6 @@ void Preferences::Load()
 {
 	// These settings should be on by default. There is no need to specify
 	// values for settings that are off by default.
-	settings["Landing zoom"] = true;
 	settings["Render motion blur"] = true;
 	settings["Cloaked ship outlines"] = true;
 	settings[FRUGAL_ESCORTS] = true;
@@ -215,7 +223,6 @@ void Preferences::Load()
 	settings["Show stored outfits on map"] = true;
 	settings["Show planet labels"] = true;
 	settings["Show asteroid scanner overlay"] = true;
-	settings["Show hyperspace flash"] = true;
 	settings["Draw background haze"] = true;
 	settings["Draw starfield"] = true;
 	settings["Animate main menu background"] = true;
@@ -226,6 +233,9 @@ void Preferences::Load()
 	settings["Extra fleet status messages"] = true;
 	settings["Target asteroid based on"] = true;
 	settings["Deadline blink by distance"] = true;
+	settings["Confirm 'Sell Outfits' button"] = true;
+	settings["Confirm 'Sell Minables' button"] = true;
+	settings["'Sell Outfits' without outfitter"] = true;
 	settings["Show buttons on map"] = false;
 #ifdef __ANDROID__
 	settings["fullscreen"] = true;
@@ -284,6 +294,8 @@ void Preferences::Load()
 			statusOverlaySettings[OverlayType::NEUTRAL].SetState(node.Value(1));
 		else if(key == "Turret overlays")
 			turretOverlaysIndex = clamp<int>(node.Value(1), 0, TURRET_OVERLAYS_SETTINGS.size() - 1);
+		else if(key == "Highlight ships")
+			highlightShipsIndex = clamp<int>(node.Value(1), 0, HIGHLIGHT_SHIPS_SETTINGS.size() - 1);
 		else if(key == "Automatic aiming")
 			autoAimIndex = max<int>(0, min<int>(node.Value(1), AUTO_AIM_SETTINGS.size() - 1));
 		else if(key == "Automatic firing")
@@ -310,6 +322,10 @@ void Preferences::Load()
 			settings["Control ship with mouse"] = (!hasValue || node.Value(1));
 		else if(key == "notification settings")
 			notifOptionsIndex = max<int>(0, min<int>(node.Value(1), NOTIF_OPTIONS.size() - 1));
+		else if(key == "Tribute confirmation")
+			tributeConfirmationIndex = max<int>(0, min<int>(node.Value(1), TRIBUTE_CONFIRMATION_SETTINGS.size() - 1));
+		else if(key == "Ammo refill")
+			ammoRefillIndex = clamp<int>(node.Value(1), 0, AMMO_REFILL_SETTINGS.size() - 1);
 #ifdef _WIN32
 		else if(key == "Title bar theme")
 			titleBarThemeIndex = clamp<int>(node.Value(1), 0, TITLE_BAR_THEME_SETTINGS.size() - 1);
@@ -350,6 +366,16 @@ void Preferences::Load()
 		settings.erase(it);
 	}
 
+	// For people updating from a version before 0.11.1,
+	// where "Highlight player's ship" was replaced with "Highlight ships".
+	it = settings.find("Highlight player's flagship");
+	if(it != settings.end())
+	{
+		if(it->second)
+			highlightShipsIndex = static_cast<int>(HighlightShips::FLAGSHIP);
+		settings.erase(it);
+	}
+
 	// Check if the app crashed on startup
 	if (CrashState::HasCrashed())
 	{
@@ -384,6 +410,7 @@ void Preferences::Save()
 	out.Write("Show enemy overlays", statusOverlaySettings[OverlayType::ENEMY].ToInt());
 	out.Write("Show neutral overlays", statusOverlaySettings[OverlayType::NEUTRAL].ToInt());
 	out.Write("Turret overlays", turretOverlaysIndex);
+	out.Write("Highlight ships", highlightShipsIndex);
 	out.Write("Automatic aiming", autoAimIndex);
 	out.Write("Automatic firing", autoFireIndex);
 	out.Write("Parallax background", parallaxIndex);
@@ -392,6 +419,8 @@ void Preferences::Save()
 	out.Write("Show mini-map", minimapDisplayIndex);
 	out.Write("Prioritize flagship use", flagshipSpacePriorityIndex);
 	out.Write("Reduce large graphics", largeGraphicsReductionIndex);
+	out.Write("Tribute confirmation", tributeConfirmationIndex);
+	out.Write("Ammo refill", ammoRefillIndex);
 	out.Write("previous saves", previousSaveCount);
 #ifdef _WIN32
 	if(WinVersion::SupportsDarkTheme())
@@ -775,6 +804,27 @@ const string &Preferences::TurretOverlaysSetting()
 
 
 
+void Preferences::ToggleHighlightShips()
+{
+	highlightShipsIndex = (highlightShipsIndex + 1) % HIGHLIGHT_SHIPS_SETTINGS.size();
+}
+
+
+
+Preferences::HighlightShips Preferences::GetHighlightShips()
+{
+	return static_cast<HighlightShips>(highlightShipsIndex);
+}
+
+
+
+const string &Preferences::HighlightShipsSetting()
+{
+	return HIGHLIGHT_SHIPS_SETTINGS[highlightShipsIndex];
+}
+
+
+
 void Preferences::ToggleAutoAim()
 {
 	autoAimIndex = (autoAimIndex + 1) % AUTO_AIM_SETTINGS.size();
@@ -984,6 +1034,50 @@ Preferences::LargeGraphicsReduction Preferences::GetLargeGraphicsReduction()
 const string &Preferences::LargeGraphicsReductionSetting()
 {
 	return LARGE_GRAPHICS_REDUCTION_SETTINGS[largeGraphicsReductionIndex];
+}
+
+
+
+void Preferences::ToggleTributeConfirmation()
+{
+	if(++tributeConfirmationIndex >= static_cast<int>(TRIBUTE_CONFIRMATION_SETTINGS.size()))
+		tributeConfirmationIndex = 0;
+}
+
+
+
+Preferences::TributeConfirmation Preferences::GetTributeConfirmation()
+{
+	return static_cast<TributeConfirmation>(tributeConfirmationIndex);
+}
+
+
+
+const string &Preferences::TributeConfirmationSetting()
+{
+	return TRIBUTE_CONFIRMATION_SETTINGS[tributeConfirmationIndex];
+}
+
+
+
+void Preferences::ToggleAmmoRefill()
+{
+	if(++ammoRefillIndex >= static_cast<int>(AMMO_REFILL_SETTINGS.size()))
+		ammoRefillIndex = 0;
+}
+
+
+
+Preferences::AmmoRefill Preferences::GetAmmoRefill()
+{
+	return static_cast<AmmoRefill>(ammoRefillIndex);
+}
+
+
+
+const std::string &Preferences::AmmoRefillSetting()
+{
+	return AMMO_REFILL_SETTINGS[ammoRefillIndex];
 }
 
 

@@ -28,6 +28,7 @@ this program. If not, see <https://www.gnu.org/licenses/>.
 #include "text/FontSet.h"
 #include "GameData.h"
 #include "Government.h"
+#include "Information.h"
 #include "Interface.h"
 #include "text/Layout.h"
 #include "MapOutfitterPanel.h"
@@ -43,6 +44,7 @@ this program. If not, see <https://www.gnu.org/licenses/>.
 #include "Ship.h"
 #include "ShipJumpNavigation.h"
 #include "image/Sprite.h"
+#include "image/SpriteLoadManager.h"
 #include "image/SpriteSet.h"
 #include "shader/SpriteShader.h"
 #include "StellarObject.h"
@@ -169,8 +171,8 @@ void MapDetailPanel::Draw()
 
 	clickZones.clear();
 
-	DrawInfo();
 	DrawOrbits();
+	DrawInfo();
 	DrawKey();
 	FinishDrawing(isStars ? "is stars" : "is ports");
 }
@@ -394,6 +396,8 @@ bool MapDetailPanel::KeyDown(SDL_Keycode key, Uint16 mod, const Command &command
 			}
 		}
 	}
+	else if(key == 'c')
+		player.SetEscortDestination();
 	else
 		return MapPanel::KeyDown(key, mod, command, isNewPress);
 
@@ -409,8 +413,6 @@ bool MapDetailPanel::Click(int x, int y, MouseButton button, int clicks)
 
 	if(button == MouseButton::RIGHT)
 	{
-		if(!Preferences::Has("System map sends move orders"))
-			return true;
 		if(commodity == SHOW_STARS && !player.CanView(*selectedSystem))
 			return true;
 
@@ -427,9 +429,9 @@ bool MapDetailPanel::Click(int x, int y, MouseButton button, int clicks)
 
 			// Only issue movement orders if the player is in-flight.
 			if(player.GetPlanet())
-				GetUI().Push(new DialogPanel("You cannot issue fleet movement orders while docked."));
+				GetUI().Push(DialogPanel::Info("You cannot issue fleet movement orders while docked."));
 			else if(!player.CanView(*selectedSystem))
-				GetUI().Push(new DialogPanel("You must visit this system before you can send your fleet there."));
+				GetUI().Push(DialogPanel::Info("You must visit this system before you can send your fleet there."));
 			else
 				player.SetEscortDestination(selectedSystem, uiClick / scale);
 		}
@@ -574,6 +576,8 @@ void MapDetailPanel::GeneratePlanetCards(const System &system)
 			if(planet->IsWormhole() || !planet->IsAccessible(player.Flagship()) || shown.contains(planet))
 				continue;
 
+			// Make sure that the sprite for this planet is loaded.
+			SpriteLoadManager::LoadDeferred(GetUI().AsyncQueue(), object.GetSprite());
 			planetCards.emplace_back(object, number, player.HasVisited(*planet), this);
 			shown.insert(planet);
 			++number;
@@ -988,6 +992,11 @@ void MapDetailPanel::DrawInfo()
 		RemoveChild(description.get());
 		descriptionVisible = false;
 	}
+
+	Information mapInterfaceInfo;
+	if(player.HasEscortDestination())
+		mapInterfaceInfo.SetCondition("has escort destination");
+	mapInterface->Draw(mapInterfaceInfo, this);
 }
 
 

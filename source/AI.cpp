@@ -41,6 +41,7 @@ this program. If not, see <https://www.gnu.org/licenses/>.
 #include "Preferences.h"
 #include "Random.h"
 #include "RoutePlan.h"
+#include "ScanType.h"
 #include "Ship.h"
 #include "ship/ShipAICache.h"
 #include "ShipEvent.h"
@@ -566,6 +567,13 @@ void AI::UpdateKeys(PlayerInfo &player, const Command &activeCommands)
 	}
 	else if(activeCommands.Has(Command::FIGHT) && !shift && targetAsteroid)
 		IssueAsteroidTarget(targetAsteroid);
+	if(activeCommands.Has(Command::SCAN_ORDER) && target && !target->IsYours() && !shift
+		&& (player.HasScanner(ScanType::CARGO) || player.HasScanner(ScanType::OUTFIT)))
+	{
+		OrderSingle newOrder{Orders::Types::SCAN};
+		newOrder.SetTargetShip(target);
+		IssueOrder(newOrder, "scanning \"" + target->GivenName() + "\".");
+	}
 	if(activeCommands.Has(Command::HOLD_FIRE) && !shift)
 	{
 		OrderSingle newOrder{Orders::Types::HOLD_FIRE};
@@ -586,7 +594,7 @@ void AI::UpdateKeys(PlayerInfo &player, const Command &activeCommands)
 	// Get rid of any invalid orders. Carried ships will retain orders in case they are deployed.
 	for(auto it = orders.begin(); it != orders.end(); )
 	{
-		it->second.Validate(it->first, flagship->GetSystem());
+		it->second.Validate(it->first, player);
 		if(it->second.Empty())
 		{
 			it = orders.erase(it);
@@ -831,9 +839,9 @@ void AI::Step(Command &activeCommands)
 				&& !target->GetGovernment()->IsEnemy(gov) && target->GetGovernment() != gov)
 			{
 				++scanTime[&*it];
-				if(it->CargoScanFraction() == 1.)
+				if(it->CargoScanFraction() >= 1.)
 					cargoScans[&*it].insert(&*target);
-				if(it->OutfitScanFraction() == 1.)
+				if(it->OutfitScanFraction() >= 1.)
 					outfitScans[&*it].insert(&*target);
 			}
 		}
@@ -1063,8 +1071,11 @@ void AI::Step(Command &activeCommands)
 				parentChoices.reserve(ships.size() * .1);
 				auto getParentFrom = [&it, &gov, &parentChoices](const list<shared_ptr<Ship>> &otherShips) -> shared_ptr<Ship>
 				{
+					// Fighters with the staying personality should only dock with carriers that are also staying.
+					bool isStaying = it->GetPersonality().IsStaying();
 					for(const auto &other : otherShips)
-						if(other->GetGovernment() == gov && other->GetSystem() == it->GetSystem() && !other->CanBeCarried())
+						if(other->GetGovernment() == gov && other->GetSystem() == it->GetSystem()
+							&& (!isStaying || other->GetPersonality().IsStaying()) && !other->CanBeCarried())
 						{
 							if(!other->IsDisabled() && other->CanCarry(*it))
 								return other;
@@ -1375,7 +1386,7 @@ void AI::AskForHelp(Ship &ship, bool &isStranded, const Ship *flagship)
 		const Government *gov = ship.GetGovernment();
 		bool hasEnemy = false;
 
-		vector<Ship *> canHelp;
+		WeightedList<Ship *> canHelp;
 		canHelp.reserve(ships.size());
 		for(const auto &helper : ships)
 		{
@@ -1423,12 +1434,14 @@ void AI::AskForHelp(Ship &ship, bool &isStranded, const Ship *flagship)
 				continue;
 
 			// Prefer fast ships over slow ones.
-			canHelp.insert(canHelp.end(), 1 + .3 * helper->MaxVelocity(), helper.get());
+			// Cap the velocity we care about to 1000 units per frame to guard against plugin ships with
+			// ludicrous speeds.
+			canHelp.emplace_back(clamp<int>(1. + .3 * helper->MaxVelocity(), 1, 1000), helper.get());
 		}
 
 		if(!hasEnemy && !canHelp.empty())
 		{
-			Ship *helper = canHelp[Random::Int(canHelp.size())];
+			Ship *helper = canHelp.Get();
 			helper->SetShipToAssist(ship.weak_from_this());
 			helperList[&ship] = helper->weak_from_this();
 			isStranded = true;
@@ -1500,13 +1513,16 @@ shared_ptr<Ship> AI::FindTarget(const Ship &ship) const
 	if(!gov || ship.GetPersonality().IsPacifist())
 		return FindNonHostileTarget(ship);
 
+	int64_t alliedStrength = AllyStrength(ship.GetGovernment());
+
 	bool isYours = ship.IsYours();
 	if(isYours)
 	{
 		auto it = orders.find(&ship);
 		if(it != orders.end())
 		{
-			if(it->second.Has(Orders::Types::ATTACK) || it->second.Has(Orders::Types::FINISH_OFF))
+			if(it->second.Has(Orders::Types::ATTACK) || it->second.Has(Orders::Types::FINISH_OFF)
+					|| it->second.Has(Orders::Types::SCAN))
 				return it->second.GetTargetShip();
 			if(it->second.Has(Orders::Types::HOLD_FIRE))
 				return target;
@@ -1580,7 +1596,8 @@ shared_ptr<Ship> AI::FindTarget(const Ship &ship) const
 		double range = (foe->Position() + 60. * foe->Velocity()).Distance(
 			ship.Position() + 60. * ship.Velocity());
 		// Prefer the previous target, or the parent's target, if they are nearby.
-		if(foe == oldTarget.get() || foe == parentTarget.get())
+		bool preferredTarget = (foe == oldTarget.get() || foe == parentTarget.get());
+		if(preferredTarget)
 			range -= 500.;
 
 		// Unless this ship is "daring", it should not chase much stronger ships.
@@ -1599,6 +1616,22 @@ shared_ptr<Ship> AI::FindTarget(const Ship &ship) const
 		if((person.Disables() || (!person.IsNemesis() && foe != oldTarget.get()))
 				&& foe->IsDisabled() && (!canPlunder || Has(ship, foe->weak_from_this(), ShipEvent::BOARD)))
 			continue;
+
+		foe->UpdateTargeterStrength();
+		double targeterStrength = foe->GetTargeterStrength();
+		int targeterCount = foe->GetShipsTargetingThis().size();
+
+		// The next two checks only apply if more than two ships are attacking the foe, as well as
+		// if it has not already been selected as a target recently.
+		if(!preferredTarget && targeterCount > 2)
+		{
+			// Deprioritize this if more than a quarter of your allies' strength is already attacking.
+			if(targeterStrength >= 0.25 * alliedStrength)
+				range += 500;
+			// Deprioritize this if it is being targeted by more than twice its strength.
+			if(targeterStrength >= 2. * foe->Strength())
+				range += 500;
+		}
 
 		// Ships that don't (or can't) plunder strongly prefer active targets.
 		if(!canPlunder)
@@ -1847,6 +1880,14 @@ bool AI::FollowOrders(Ship &ship, Command &command)
 		// Note: in AI::UpdateKeys() we already made sure that if a set of orders
 		// has a target, the target is in-system and targetable. But, to be sure:
 		return false;
+	}
+	else if(shipOrders.Has(Orders::Types::SCAN))
+	{
+		if(target->Velocity().Length() > ship.MaxVelocity() * 0.9)
+			CircleAround(ship, command, *target);
+		else
+			MoveTo(ship, command, target->Position(), target->Velocity(), 1., 1.);
+		command |= Command::SCAN;
 	}
 	else if(shipOrders.Has(Orders::Types::KEEP_STATION))
 		KeepStation(ship, command, *target);

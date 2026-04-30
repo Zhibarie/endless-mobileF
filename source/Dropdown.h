@@ -1,5 +1,5 @@
-/*
-Copyright (c) 2023 by Rian Shelley
+/* Dropdown.h
+Copyright (c) 2023 by thewierdnut
 
 Endless Sky is free software: you can redistribute it and/or modify it under the
 terms of the GNU General Public License as published by the Free Software
@@ -13,77 +13,81 @@ You should have received a copy of the GNU General Public License along with
 this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef DROPDOWN_H_
-#define DROPDOWN_H_
+#pragma once
 
+#include "Edit.h"
 
 #include "Color.h"
 #include "Panel.h"
 #include "Rectangle.h"
 
 #include <functional>
-#include <vector>
 #include <string>
+#include <vector>
 
-/**
- * Handles drawing and input for a traditional dropdown control
- */
-class Dropdown: public Panel
-{
+
+
+// Implements a dropdown control.
+class Dropdown : public Edit {
 public:
+	Dropdown();
 	virtual ~Dropdown() = default;
 
-	void SetFontSize(int f) { font_size = f; }
-	void SetPosition(const Rectangle& position) { this->position = position; }
-	void SetOptions(const std::vector<std::string>& options);
-	void SetSelected(const std::string& s);
+	void SetOptions(const std::vector<std::string> &options);
+	void SetText(const std::string &s) override;
 	void SetSelectedIndex(int idx);
-	const std::string& GetSelected() const { return selected_string; }
-	int GetSelectedIndex() const { return selected_index; }
+	int GetSelectedIndex() const { return selectedIndex; }
 
 	virtual void Draw() override;
 
-	enum ALIGN { LEFT, CENTER, RIGHT };
-	void SetAlign(ALIGN a) { alignment = a; }
-	void SetPadding(int p) { padding = p;}
+	void ShowDropIcon(bool s);
+	void SetPadding(int p) override;
+	void SetRightPadding(int p) override;
+	int RightPadding() const override { return rightPaddingWithoutDrop; }
 
-	void SetEnabled(bool e) { enabled = e; }
-	void SetVisible(bool v) { visible = v; }
-	void SetBgColor(const Color& color) { bg_color = color; }
-	void ShowDropIcon(bool s) { showDropIcon = s; }
+	void SetTypeable(bool t);
+	void SetEnabled(bool e) override;
+	bool Enabled() const override { return enabled; }
 
-	typedef std::function<void(int, const std::string&)> ChangedCallback;
-
-	void SetCallback(ChangedCallback cb) { changed_callback = cb; }
 
 protected:
-	void DoDropdown(const Point& pos);
+	void DoDropdown(const Point &pos);
+
+
+private:
+	class DroppedPanel : public Panel {
+	public:
+		explicit DroppedPanel(Dropdown *parent);
+
+		virtual void Draw() override;
+
+		void SetMousePos(const Point &p) { mousePos = p; }
+
+	protected:
+		virtual bool Click(int x, int y, MouseButton button, int clicks) override;
+		virtual bool Drag(double dx, double dy) override;
+		virtual bool Release(int x, int y, MouseButton button) override;
+		virtual bool Hover(int x, int y) override;
+
+	private:
+		Dropdown *dd = nullptr;
+
+		uint32_t clickStamp = 0;
+		Point mousePos;
+
+		int highlightIndex = -1;
+	};
+
 
 private:
 	int IdxFromPoint(int x, int y) const;
 
 
-	Rectangle position;
+private:
 	std::vector<std::string> options;
-	std::string selected_string;
-	int selected_index = -1;
-	Color bg_color;
+	int selectedIndex = -1;
 
-	//bool is_popped = false;
-	bool is_hover = false;
-	bool is_active = true;
-
-	int font_size = 18;
-	ALIGN alignment = LEFT;
-	int padding = 5;
-
+	int rightPaddingWithoutDrop = 5;
+	bool showDropIcon = true;
 	bool enabled = true;
-	bool visible = true;
-	bool showDropIcon = false;
-
-	std::function<void(int, const std::string&)> changed_callback;
-
-	class DroppedPanel;
 };
-
-#endif

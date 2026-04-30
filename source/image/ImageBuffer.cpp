@@ -61,10 +61,11 @@ namespace {
 		return extensions;
 	}();
 
-	bool ReadPNG(const filesystem::path &path, ImageBuffer &buffer, int frame);
-	bool ReadJPG(const filesystem::path &path, ImageBuffer &buffer, int frame);
-	int ReadAVIF(const filesystem::path &path, ImageBuffer &buffer, int frame, bool alphaPreMultiplied);
-	int ReadKTX(const filesystem::path &path, ImageBuffer &buffer);
+	bool ReadPNG(const filesystem::path &path, ImageBuffer &buffer, int frame, bool onlyDimensions);
+	bool ReadJPG(const filesystem::path &path, ImageBuffer &buffer, int frame, bool onlyDimensions);
+	int ReadAVIF(const filesystem::path &path, ImageBuffer &buffer, int frame, bool alphaPreMultiplied,
+		bool onlyDimensions);
+	int ReadKTX(const filesystem::path &path, ImageBuffer &buffer, bool onlyDimensions);
 	void Premultiply(ImageBuffer &buffer, int frame, BlendingMode additive);
 }
 
@@ -266,7 +267,7 @@ void ImageBuffer::ShrinkToHalfSize()
 
 
 
-int ImageBuffer::Read(const ImageFileData &data, int frame)
+int ImageBuffer::Read(const ImageFileData &data, int frame, bool onlyDimensions)
 {
 	// First, make sure this is a supported file.
 	bool isPNG = PNG_EXTENSIONS.contains(data.extension);
@@ -277,24 +278,27 @@ int ImageBuffer::Read(const ImageFileData &data, int frame)
 	if(!isPNG && !isJPG && !isAVIF && !isKTX)
 		return false;
 
-	int loaded = 0;
+	bool isAlphaPreMultiplied = data.blendingMode == BlendingMode::PREMULTIPLIED_ALPHA;
+	int loaded;
 	if(isPNG)
-		loaded = ReadPNG(data.path, *this, frame);
+		loaded = ReadPNG(data.path, *this, frame, onlyDimensions);
 	else if(isJPG)
-		loaded = ReadJPG(data.path, *this, frame);
+		loaded = ReadJPG(data.path, *this, frame, onlyDimensions);
 #ifndef __ANDROID__
 	else if(isAVIF)
-		loaded = ReadAVIF(data.path, *this, frame, data.blendingMode == BlendingMode::PREMULTIPLIED_ALPHA);
+		loaded = ReadAVIF(data.path, *this, frame, isAlphaPreMultiplied, onlyDimensions);
 #endif
 	else if(isKTX)
-		loaded = ReadKTX(data.path, *this);
+		loaded = ReadKTX(data.path, *this, onlydimensions);
 
 	if(loaded <= 0)
 		return 0;
+	if(onlyDimensions)
+		return loaded;
 	if (isKTX) // KTX files are always premultiplied
 		return true;
 
-	if(data.blendingMode != BlendingMode::PREMULTIPLIED_ALPHA)
+	if(!isAlphaPreMultiplied)
 	{
 		if(isPNG || (isJPG && data.blendingMode == BlendingMode::ADDITIVE))
 			Premultiply(*this, frame, data.blendingMode);
@@ -310,7 +314,7 @@ namespace {
 		static_cast<iostream *>(png_get_io_ptr(pngStruct))->read(reinterpret_cast<char *>(outBytes), byteCountToRead);
 	}
 
-	bool ReadPNG(const filesystem::path &path, ImageBuffer &buffer, int frame)
+	bool ReadPNG(const filesystem::path &path, ImageBuffer &buffer, int frame, bool onlyDimensions)
 	{
 		// Open the file, and make sure it really is a PNG.
 		shared_ptr<iostream> file = Files::Open(path.string());
@@ -365,6 +369,12 @@ namespace {
 					+ " but was " + to_string(height), Logger::Level::WARNING);
 			return false;
 		}
+		if(onlyDimensions)
+		{
+			// Clean up. The file will be closed automatically.
+			png_destroy_read_struct(&png, &info, nullptr);
+			return true;
+		}
 
 		// Adjust settings to make sure the result will be an RGBA file.
 		int colorType = png_get_color_type(png, info);
@@ -410,7 +420,7 @@ namespace {
 
 
 
-	bool ReadJPG(const filesystem::path &path, ImageBuffer &buffer, int frame)
+	bool ReadJPG(const filesystem::path &path, ImageBuffer &buffer, int frame, bool onlyDimensions)
 	{
 		string data = Files::Read(path);
 		if(data.empty())
@@ -457,6 +467,11 @@ namespace {
 					+ " but was " + to_string(height), Logger::Level::WARNING);
 			return false;
 		}
+		if(onlyDimensions)
+		{
+			jpeg_destroy_decompress(&cinfo);
+			return true;
+		}
 
 		// Read the file.
 		vector<JSAMPLE *> rows(height, nullptr);
@@ -481,7 +496,8 @@ namespace {
 	// based on how much longer its duration is compared to this unit.
 	// TODO: If animation properties are exposed here, we can have custom presentation
 	// logic that avoids duplicating the frames.
-	int ReadAVIF(const filesystem::path &path, ImageBuffer &buffer, int frame, bool alphaPreMultiplied)
+	int ReadAVIF(const filesystem::path &path, ImageBuffer &buffer, int frame, bool alphaPreMultiplied,
+		bool onlyDimensions)
 	{
 #ifdef __ANDROID__
 		return 0;
@@ -564,6 +580,8 @@ namespace {
 			Logger::Log("Invalid dimensions for \"" + path.generic_string() + "\"", Logger::Level::WARNING);
 			return 0;
 		}
+		if(onlyDimensions)
+			return bufferFrameCount;
 
 		// Load each image in the sequence.
 		int avifFrameIndex = 0;
@@ -610,7 +628,7 @@ namespace {
 
 
 
-	int ReadKTX(const filesystem::path &path, ImageBuffer &buffer)
+	int ReadKTX(const filesystem::path &path, ImageBuffer &buffer, bool onlyDimensions)
 	{
 		std::string ktx_data = Files::Read(path);
 		if(ktx_data.empty())

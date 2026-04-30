@@ -78,7 +78,7 @@ public:
 	// image is the wrong size, or it is not a supported image format.
 	// If the file is an image sequence, it overwrites the preconfigured
 	// frame count with the number of frames found in the file.
-	int Read(const ImageFileData &data, int frame = 0);
+	int Read(const ImageFileData &data, int frame = 0, bool onlyDimensions = false);
 
 
 	uint32_t CompressedFormat() const { return compressed_format; }

@@ -89,9 +89,27 @@ const string &Sprite::Name() const
 
 
 
+void Sprite::LoadDimensions(const ImageBuffer &buffer)
+{
+	width = buffer.Width();
+	height = buffer.Height();
+	frames = buffer.Frames();
+}
+
+
+
+bool Sprite::HasDimensions() const
+{
+	return width != 0 && height != 0 && frames != 0;
+}
+
+
+
+
 // Add the given frames, optionally uploading them. The given buffers will be cleared afterwards.
 void Sprite::AddFrames(ImageBuffer &buffer1x, ImageBuffer &buffer2x, bool noReduction)
 {
+	isLoaded = true;
 	// The 1x image determines the dimensions of the sprite's size.
 	width = buffer1x.DisplayWidth();
 	height = buffer1x.DisplayHeight();
@@ -139,6 +157,13 @@ void Sprite::AddSwizzleMaskFrames(ImageBuffer &buffer1x, ImageBuffer &buffer2x, 
 
 
 
+bool Sprite::IsLoaded() const
+{
+	return isLoaded;
+}
+
+
+
 // Free up all textures loaded for this sprite.
 void Sprite::Unload()
 {
@@ -147,17 +172,13 @@ void Sprite::Unload()
 		glDeleteTextures(1, &texture);
 		texture = 0;
 	}
-
 	if(swizzleMask)
 	{
 		glDeleteTextures(1, &swizzleMask);
 		swizzleMask = 0;
 	}
-
-	width = 0.f;
-	height = 0.f;
-	frames = 0;
-	swizzleMaskFrames = 0;
+	isLoaded = false;
+	// Dimension and frame information is retained.
 }
 
 

@@ -25,7 +25,6 @@ this program. If not, see <https://www.gnu.org/licenses/>.
 #include "CargoHold.h"
 #include "DialogPanel.h"
 #include "text/DisplayText.h"
-#include "shader/FillShader.h"
 #include "shader/FogShader.h"
 #include "text/Font.h"
 #include "text/FontSet.h"
@@ -41,7 +40,6 @@ this program. If not, see <https://www.gnu.org/licenses/>.
 #include "MapShipyardPanel.h"
 #include "Mission.h"
 #include "MissionPanel.h"
-#include "pi.h"
 #include "Planet.h"
 #include "PlayerInfo.h"
 #include "shader/PointerShader.h"
@@ -193,7 +191,6 @@ namespace {
 					raidFleet.GetFleet()->Strength();
 		return danger;
 	}
-
 }
 
 const unsigned MapPanel::MAX_MISSION_POINTERS_DRAWN = 12;
@@ -221,7 +218,7 @@ pair<bool, bool> MapPanel::BlinkMissionIndicator(const PlayerInfo &player, const
 {
 	bool blink = false;
 	int daysLeft = 1;
-	if(mission.Deadline())
+	if(mission.Deadline() && !mission.IsFailed())
 	{
 		daysLeft = player.RemainingDeadline(mission);
 		int blinkFactor = min(6, max(1, daysLeft));
@@ -531,8 +528,7 @@ bool MapPanel::KeyDown(SDL_Keycode key, Uint16 mod, const Command &command, bool
 	}
 	else if(key == 'f')
 	{
-		GetUI().Push(new DialogPanel(
-			this, &MapPanel::Find, "Search for:", "", Truncate::NONE, true));
+		GetUI().Push(DialogPanel::RequestString(this, &MapPanel::Find, "Search for:", "", Truncate::NONE, true));
 		return true;
 	}
 	else if(key == SDLK_PLUS || key == SDLK_KP_PLUS || key == SDLK_EQUALS)

@@ -17,6 +17,7 @@ this program. If not, see <https://www.gnu.org/licenses/>.
 
 #include "Panel.h"
 #include "Point.h"
+#include "TaskQueue.h"
 
 #include <memory>
 #include <vector>
@@ -54,6 +55,9 @@ public:
 	void StepAll();
 	// Draw all the panels.
 	void DrawAll();
+
+	TaskQueue &SyncQueue();
+	TaskQueue &AsyncQueue();
 
 	// Get the current panel stack.
 	const std::vector<std::shared_ptr<Panel>> &Stack() const;
@@ -120,6 +124,12 @@ private:
 	std::vector<std::shared_ptr<Panel>> stack;
 	std::vector<std::shared_ptr<Panel>> toPush;
 	std::vector<const Panel *> toPop;
+
+	// Shared task queues that all panels can use.
+	// The sync queue will wait at the end of the step for all
+	// tasks to be completed, while the async queue does not.
+	TaskQueue syncQueue;
+	TaskQueue asyncQueue;
 
 	uint32_t lastTap = 0;
 
