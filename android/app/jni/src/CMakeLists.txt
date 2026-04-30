@@ -100,6 +100,7 @@ add_library(main SHARED
    ${CMAKE_SOURCE_DIR}/../../../source/BookEntry.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/Camera.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/CaptureOdds.cpp
+   ${CMAKE_SOURCE_DIR}/../../../source/Caret.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/CargoHold.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/CategoryList.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/Collision.cpp
@@ -127,11 +128,14 @@ add_library(main SHARED
    ${CMAKE_SOURCE_DIR}/../../../source/DistanceCalculationSettings.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/DistanceMap.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/Distribution.cpp
+   ${CMAKE_SOURCE_DIR}/../../../source/Drawable.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/shader/DrawList.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/Dropdown.cpp
+   ${CMAKE_SOURCE_DIR}/../../../source/Edit.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/Effect.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/Endpoint.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/Engine.cpp
+   ${CMAKE_SOURCE_DIR}/../../../source/Entity.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/EscortDisplay.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/EsUuid.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/Files.cpp
@@ -154,6 +158,7 @@ add_library(main SHARED
    ${CMAKE_SOURCE_DIR}/../../../source/GamePad.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/GamepadCursor.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/GamepadPanel.cpp
+   ${CMAKE_SOURCE_DIR}/../../../source/GamerulesPanel.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/GameVersion.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/Gesture.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/Government.cpp
@@ -171,6 +176,7 @@ add_library(main SHARED
    ${CMAKE_SOURCE_DIR}/../../../source/image/KtxFile.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/shader/LineShader.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/LoadPanel.cpp
+   ${CMAKE_SOURCE_DIR}/../../../source/LoadingCircle.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/LocationFilter.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/LogbookPanel.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/Logger.cpp
@@ -202,6 +208,7 @@ add_library(main SHARED
    ${CMAKE_SOURCE_DIR}/../../../source/NPC.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/NPCAction.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/opengl.cpp
+   ${CMAKE_SOURCE_DIR}/../../../source/OptionalInputDialogPanel.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/Outfit.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/OutfitInfoDisplay.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/OutfitterPanel.cpp
@@ -214,6 +221,7 @@ add_library(main SHARED
    ${CMAKE_SOURCE_DIR}/../../../source/Person.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/Personality.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/Phrase.cpp
+   ${CMAKE_SOURCE_DIR}/../../../source/PilotProfile.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/Planet.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/PlanetLabel.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/PlanetPanel.cpp
@@ -254,6 +262,7 @@ add_library(main SHARED
    ${CMAKE_SOURCE_DIR}/../../../source/SpaceportPanel.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/image/Sprite.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/image/SpriteSet.cpp
+   ${CMAKE_SOURCE_DIR}/../../../source/image/SpriteLoadManager.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/shader/SpriteShader.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/ShipNameDialogPanel.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/shader/StarField.cpp

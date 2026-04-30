@@ -94,7 +94,9 @@ bool GameWindow::Init(bool headless)
 #if defined(__linux__)
 		setenv("SDL_VIDEODRIVER", "dummy", true);
 #endif
+#ifndef __ANDROID__
 		SDL_SetHint(SDL_HINT_VIDEODRIVER, "dummy");
+#endif
 	}
 
 	// This needs to be called before any other SDL commands.

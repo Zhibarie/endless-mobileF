@@ -322,13 +322,13 @@ bool LoadPanel::KeyDown(SDL_Keycode key, Uint16 mod, const Command &command, boo
 		GetUI().Push(panel);
 	}
 #ifdef __ANDROID__
-	else if ((key == 'x') && !selectedPilot.empty())
+	else if ((key == 'x') && selectedPilot)
 	{
 		// export the pilot
 		std::string data = Files::Read(Files::Saves() / selectedFile);
 
 		AndroidFile f;
-		f.SaveFile(selectedPilot + "_exported.txt", data);
+		f.SaveFile(selectedPilot->Identifier() + "_exported.txt", data);
 	}
 	else if (key == 'i')
 	{
@@ -368,7 +368,7 @@ bool LoadPanel::KeyDown(SDL_Keycode key, Uint16 mod, const Command &command, boo
 			}
 			else
 			{
-				GetUI().Push(new DialogPanel(
+				GetUI().Push(DialogPanel::Info(
 					"The selected file does not appear to be a valid "
 					"endless-sky save game."));
 			}
