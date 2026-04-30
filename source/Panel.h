@@ -55,13 +55,6 @@ public:
 
 
 public:
-	struct Event
-	{
-		Point pos;
-		int id;
-		enum {MOUSE, TOUCH, BUTTON, AXIS} type;
-	};
-
 	Panel() noexcept;
 
 	// Make the destructor virtual just in case any derived class needs it.
@@ -221,43 +214,43 @@ private:
 		}
 		void MouseDown(const Point& pos, int id) const
 		{
-			if (fun_down_event)
+			if (funDownEvent)
 			{
 				Event e{pos, id, Event::MOUSE};
-				fun_down_event(e);
+				funDownEvent(e);
 			}
 			else
-				fun_down();
+				fun();
 		}
 		void FingerDown(const Point& pos, int id) const
 		{
-			if (fun_down_event)
+			if (funDownEvent)
 			{
 				Event e{pos, id, Event::TOUCH};
-				fun_down_event(e);
+				funDownEvent(e);
 			}
 			else
-				fun_down();
+				fun();
 		}
 		void ButtonDown(int id) const
 		{
-			if (fun_down_event)
+			if (funDownEvent)
 			{
 				Event e{Center(), id, Event::BUTTON};
-				fun_down_event(e);
+				funDownEvent(e);
 			}
 			else
-				fun_down();
+				fun();
 		}
 		void AxisDown(int id) const
 		{
-			if (fun_down_event)
+			if (funDownEvent)
 			{
 				Event e{Center(), id, Event::AXIS};
-				fun_down_event(e);
+				funDownEvent(e);
 			}
 			else
-				fun_down();
+				fun();
 		}
 
 		bool Contains(const Point& p) const

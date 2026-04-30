@@ -137,15 +137,15 @@ void TradingPanel::Draw()
 	int modifier = Modifier();
 	if (modifier != 1)
 	{
-		buyMultiplier->SetSelected("x " + std::to_string(modifier));
-		sellMultiplier->SetSelected("x " + std::to_string(modifier));
+		buyMultiplier->SetText("x " + std::to_string(modifier));
+		sellMultiplier->SetText("x " + std::to_string(modifier));
 		quantityIsModifier = true;
 	}
 	else if (quantityIsModifier)
 	{
 		quantityIsModifier = false;
-		buyMultiplier->SetSelected("x 1");
-		sellMultiplier->SetSelected("x 1");
+		buyMultiplier->SetText("x 1");
+		sellMultiplier->SetText("x 1");
 	}
 
 	buyMultiplier->SetPosition(Rectangle::FromCorner(Point(MIN_X + BUY_X, y), Point(58, 16)));
@@ -370,9 +370,9 @@ void TradingPanel::Buy(int64_t amount)
 		return;
 
 	if(amount > 0)
-		amount *= std::stoi(buyMultiplier->GetSelected().substr(2));
+		amount *= std::stoi(buyMultiplier->Text().substr(2));
 	else
-		amount *= std::stoi(sellMultiplier->GetSelected().substr(2));
+		amount *= std::stoi(sellMultiplier->Text().substr(2));
 	const string &type = GameData::Commodities()[selectedRow].name;
 	int64_t price = system.Trade(type);
 	if(!price)

@@ -1549,6 +1549,7 @@ bool Engine::FingerUp(const Point &p, int fid)
 		const Interface *hud = GameData::Interfaces().Get("hud");
 		Point radarCenter = hud->GetPoint("radar");
 		double radarRadius = hud->GetValue("radar radius");
+		double radarScale = hud->GetValue("radar scale");
 		if(Preferences::Has("Clickable radar display") && (p - radarCenter).Length() <= radarRadius)
 			isRadarClick = true;
 		else
@@ -1557,8 +1558,8 @@ bool Engine::FingerUp(const Point &p, int fid)
 		clickPoint = isRadarClick ? p - radarCenter : p;
 		if(isRadarClick)
 			clickBox = Rectangle::WithCorners(
-				(p - radarCenter) / RADAR_SCALE + camera.Center(),
-				(p - radarCenter) / RADAR_SCALE  + camera.Center());
+				(p - radarCenter) / radarScale + camera.Center(),
+				(p - radarCenter) / radarScale  + camera.Center());
 		else
 			clickBox = Rectangle::WithCorners(p / zoom + camera.Center(), p / zoom + camera.Center());
 	}
@@ -1579,6 +1580,7 @@ bool Engine::FingerMove(const Point &p, int fid)
 		const Interface *hud = GameData::Interfaces().Get("hud");
 		Point radarCenter = hud->GetPoint("radar");
 		double radarRadius = hud->GetValue("radar radius");
+		double radarScale = hud->GetValue("radar scale");
 		if(Preferences::Has("Clickable radar display") && (p - radarCenter).Length() <= radarRadius)
 			isRadarClick = true;
 		else
@@ -1587,8 +1589,8 @@ bool Engine::FingerMove(const Point &p, int fid)
 		clickPoint = isRadarClick ? p - radarCenter : p;
 		if(isRadarClick)
 			clickBox = Rectangle::WithCorners(
-				(p - radarCenter) / RADAR_SCALE + camera.Center(),
-				(p - radarCenter) / RADAR_SCALE  + camera.Center());
+				(p - radarCenter) / radarScale + camera.Center(),
+				(p - radarCenter) / radarScale  + camera.Center());
 		else
 			clickBox = Rectangle::WithCorners(p / zoom + camera.Center(), p / zoom + camera.Center());
 	}

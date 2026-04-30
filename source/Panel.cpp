@@ -519,6 +519,134 @@ bool Panel::DoTextInput(const string &text)
 
 
 
+bool Panel::DoFingerDown(int x, int y, int fid, int clicks)
+{
+	// Order:
+	//   0. Children first.
+	//   1. Zones (these will be buttons)
+	//   2. Finger down events (this will be game controls)
+	//      2.5 Trigger a hover as well, as some ui's use this to
+	//          determine where a drag begins from.
+	//   3. Clicks (fallback to mouse click)
+	for(auto it = children.rbegin(); it != children.rend(); ++it)
+		if((*it)->DoFingerDown(x, y, fid, clicks))
+			return true;
+
+	if(ZoneFingerDown(Point(x, y), fid))
+	{
+		zoneFingerId = fid;
+		return true;
+	}
+	if(FingerDown(x, y, fid))
+		return true;
+	Hover(x, y);
+	if(DoClick(x, y, MouseButton::LEFT, clicks))
+	{
+		panelFingerId = fid;
+		return true;
+	}
+	return false;
+}
+
+
+
+bool Panel::DoFingerMove(int x, int y, double dx, double dy, int fid)
+{
+	// Order:
+	//   0. Children
+	//   1. FingerMove events (These will be game controls)
+	//   2. Drag (ui events)
+	for(auto it = children.rbegin(); it != children.rend(); ++it)
+		if((*it)->DoFingerMove(x, y, dx, dy, fid))
+			return true;
+
+	if(FingerMove(x, y, fid))
+		return true;
+	if(fid == panelFingerId)
+		return Drag(dx, dy);
+	return false;
+}
+
+
+
+bool Panel::DoFingerUp(int x, int y, int fid)
+{
+	// Order:
+	//   0. Children
+	//   1. Zones (these will be buttons)
+	//   2. Finger down events (this will be game controls)
+	//   3. Clicks (fallback to mouse click)
+	for(auto it = children.rbegin(); it != children.rend(); ++it)
+		if((*it)->DoFingerUp(x, y, fid))
+			return true;
+
+	if(fid == zoneFingerId)
+	{
+		zoneFingerId = -1;
+		if (HasZone(Point(x, y)))
+			return true;
+	}
+	if(FingerUp(x, y, fid))
+		return true;
+	if (fid == panelFingerId)
+	{
+		panelFingerId = -1;
+		return Release(x, y, MouseButton::LEFT);
+	}
+	return false;
+}
+
+
+
+bool Panel::DoGesture(Gesture::GestureEnum gesture)
+{
+	return EventVisit(&Panel::Gesture, gesture);
+}
+
+
+
+bool Panel::DoControllersChanged()
+{
+	return EventVisit(&Panel::ControllersChanged);
+}
+
+
+
+bool Panel::DoControllerButtonDown(SDL_GameControllerButton button)
+{
+	return EventVisit(&Panel::ControllerButtonDown, button);
+}
+
+
+
+bool Panel::DoControllerButtonUp(SDL_GameControllerButton button)
+{
+	return EventVisit(&Panel::ControllerButtonUp, button);
+}
+
+
+
+bool Panel::DoControllerAxis(SDL_GameControllerAxis axis, int position)
+{
+	return EventVisit(&Panel::ControllerAxis, axis, position);
+}
+
+
+
+bool Panel::DoControllerTriggerPressed(SDL_GameControllerAxis axis, bool positive)
+{
+	return EventVisit(&Panel::ControllerTriggerPressed, axis, positive);
+}
+
+
+
+bool Panel::DoControllerTriggerReleased(SDL_GameControllerAxis axis, bool positive)
+{
+	return EventVisit(&Panel::ControllerTriggerReleased, axis, positive);
+}
+
+
+
 void Panel::DoDraw()
 {
 	Draw();

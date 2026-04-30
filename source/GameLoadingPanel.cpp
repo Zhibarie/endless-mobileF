@@ -83,7 +83,7 @@ void GameLoadingPanel::Step()
 		}
 		if (CrashState::HasCrashed())
 		{
-			GetUI().Push(new DialogPanel("Endless Sky crashed during a previously attempted load. "
+			GetUI().Push(DialogPanel::Info("Endless Sky crashed during a previously attempted load. "
 											 "\"Reduced Graphics\" mode has been turned on, and all "
 											 "plugins have been disabled. Please remove or disable any plugins "
 											 "you do not need before restarting."));

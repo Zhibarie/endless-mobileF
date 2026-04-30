@@ -84,7 +84,21 @@ GamepadPanel::GamepadPanel():
 	gamepadList->SetPadding(0);
 	gamepadList->ShowDropIcon(true);
 	gamepadList->SetOptions(NO_CONTROLLERS);
-	gamepadList->SetCallback([this](int idx, const std::string&) { GamePad::SetControllerIdx(idx); reloadGamepad = true; });
+	gamepadList->SetCallback([this](const std::string& controllerName) {
+		int idx = 0;
+		for (std::string s : GamePad::GetControllerList())
+		{
+			if (s == controllerName)
+			{
+				GamePad::SetControllerIdx(idx);
+				reloadGamepad = true;
+				return true;
+			}
+			// else The controller list isn't up to date. We should get a new list
+			//      once SDL sends it to us.
+		}
+		return true;
+	});
 	gamepadList->SetBgColor(*GameData::Colors().Get("shop info panel background"));
 
 	deadZoneList->SetPadding(0);
@@ -94,10 +108,11 @@ GamepadPanel::GamepadPanel():
 		deadZoneStrings.push_back(std::to_string(i) + " %");
 	deadZoneList->SetOptions(deadZoneStrings);
 	deadZoneList->SetBgColor(*GameData::Colors().Get("shop info panel background"));
-	deadZoneList->SetCallback([](int idx, const std::string& s) {
+	deadZoneList->SetCallback([](const std::string& s) {
 		GamePad::SetDeadZone(atoi(s.c_str()) * 32767.0 / 100 + .5);
+		return true;
 	});
-	deadZoneList->SetSelected(std::to_string(static_cast<int>(GamePad::DeadZone() * 100.0 / 32767 + .5)) + " %");
+	deadZoneList->SetText(std::to_string(static_cast<int>(GamePad::DeadZone() * 100.0 / 32767 + .5)) + " %");
 
 	triggerThresholdList->SetPadding(0);
 	triggerThresholdList->ShowDropIcon(true);
@@ -106,10 +121,11 @@ GamepadPanel::GamepadPanel():
 		triggerThresholdStrings.push_back(std::to_string(i) + " %");
 	triggerThresholdList->SetOptions(triggerThresholdStrings);
 	triggerThresholdList->SetBgColor(*GameData::Colors().Get("shop info panel background"));
-	triggerThresholdList->SetCallback([](int idx, const std::string& s) {
+	triggerThresholdList->SetCallback([](const std::string& s) {
 		GamePad::SetAxisIsButtonPressThreshold(atoi(s.c_str()) * 32767.0 / 100 + .5);
+		return true;
 	});
-	triggerThresholdList->SetSelected(std::to_string(static_cast<int>(GamePad::AxisIsButtonPressThreshold() * 100.0 / 32767 + .5)) + " %");
+	triggerThresholdList->SetText(std::to_string(static_cast<int>(GamePad::AxisIsButtonPressThreshold() * 100.0 / 32767 + .5)) + " %");
 
 	AddChild(gamepadList);
 	AddChild(deadZoneList);
@@ -275,7 +291,7 @@ void GamepadPanel::Draw()
 		}
 	}
 
-	if(gamepadList->GetSelected() != NO_CONTROLLERS.front() && remapIdx == -1)
+	if(gamepadList->Text() != NO_CONTROLLERS.front() && remapIdx == -1)
 		info.SetCondition("has controller");
 
 	ui->Draw(info, this);
@@ -391,7 +407,7 @@ bool GamepadPanel::KeyDown(SDL_Keycode key, Uint16 mod, const Command &command, 
 
 		GamePad::BeginAxisCalibration();
 		startRemap = true;
-		GetUI().Push(new DialogPanel(
+		GetUI().Push(DialogPanel::Info(
 			"Please move do the following:\n\n"
 			"1. Slowly move each joystick to its maximum and minimum position in each axis\n\n"
 			"2. Slowly move each trigger to its maximum and minimum position\n\n"

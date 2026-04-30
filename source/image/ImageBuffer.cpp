@@ -279,7 +279,7 @@ int ImageBuffer::Read(const ImageFileData &data, int frame, bool onlyDimensions)
 		return false;
 
 	bool isAlphaPreMultiplied = data.blendingMode == BlendingMode::PREMULTIPLIED_ALPHA;
-	int loaded;
+	int loaded = 0;
 	if(isPNG)
 		loaded = ReadPNG(data.path, *this, frame, onlyDimensions);
 	else if(isJPG)
@@ -289,7 +289,7 @@ int ImageBuffer::Read(const ImageFileData &data, int frame, bool onlyDimensions)
 		loaded = ReadAVIF(data.path, *this, frame, isAlphaPreMultiplied, onlyDimensions);
 #endif
 	else if(isKTX)
-		loaded = ReadKTX(data.path, *this, onlydimensions);
+		loaded = ReadKTX(data.path, *this, onlyDimensions);
 
 	if(loaded <= 0)
 		return 0;
