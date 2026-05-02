@@ -1020,14 +1020,12 @@ void PreferencesPanel::DrawSettings()
 		NOTIFY_ON_DEST,
 		"Save message log"
 #ifdef _WIN32
-==== BASE ====
-		"\n",
-==== BASE ====
+		"\t",
 		"Windows Options",
 		TITLE_BAR_THEME,
 		WINDOW_ROUNDING
 #endif
-		, "\n",
+		, "\t",
 		"Touchscreen",
 		"Automatic chase",
 		"Show buttons on map",
