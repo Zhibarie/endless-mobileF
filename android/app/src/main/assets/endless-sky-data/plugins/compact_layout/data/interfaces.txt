@@ -508,10 +508,19 @@ interface "trade"
 		center 130 214
 		dimensions 90 30
 
+	active if "can sell minables"
+	sprite "ui/wide button"
+		center -90 214
+	button m "Sell _Minables"
+		center -90 214
+		dimensions 90 30
+
 	active if "can sell outfits"
 	visible if "can sell outfits"
+	sprite "ui/wide button"
+		center -190 214
 	button e "S_ell Outfits"
-		center 130 214
+		center -190 214
 		dimensions 90 30
 
 interface "trade (small screen)"
@@ -533,15 +542,22 @@ interface "trade (small screen)"
 		center 130 214
 
 	active if "can sell"
-	visible if "!can sell outfits"
 	button e "S_ell All"
 		center 130 214
 		dimensions 90 30
 
+	active if "can sell minables"
+	sprite "ui/wide button"
+		center -150 214
+	button m "Sell _Minables"
+		center -150 214
+		dimensions 90 30
+
 	active if "can sell outfits"
-	visible if "can sell outfits"
-	button e "S_ell Outfits"
-		center 130 214
+	sprite "ui/wide button"
+		center -250 214
+	button f "Sell Out_fits"
+		center -250 214
 		dimensions 90 30
 
 interface "bank"
