@@ -1,0 +1,2 @@
+* Added missing trade panel buttons.
+* Fixed crash on reload dead pilot.
