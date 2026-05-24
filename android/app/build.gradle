@@ -60,6 +60,29 @@ android {
     //packagingOptions{
     //    doNotStrip "*/*/*.so"
     //}
+
+    signingConfigs {
+        debug
+        {
+            def customKeystore = file("../../secrets/debug/keystore")
+            if (customKeystore.exists())
+            {
+                // Injected by CI
+                storeFile customKeystore
+                storePassword "android"
+                keyAlias "androiddebugkey"
+                keyPassword "android"
+            }
+            else
+            {
+                // Fallback to the standard default location for local development
+                storeFile file("${System.getProperty('user.home')}/.android/debug.keystore")
+                storePassword "android"
+                keyAlias "androiddebugkey"
+                keyPassword "android"
+            }
+        }
+    }
 }
 
 dependencies {

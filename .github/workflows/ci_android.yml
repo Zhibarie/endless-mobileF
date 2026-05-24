@@ -53,12 +53,10 @@ jobs:
     - name: Print toolchain versions
       run: |
         java -version
-    - name: Update Environment
-      run: |
-        mkdir -p ~/.android
-        echo $DEBUG_CERTIFICATE | base64 -d > ~/.android/debug.keystore
     - name: Compile Android
       run: |
+        mkdir -p secrets
+        echo $DEBUG_CERTIFICATE | base64 -d > secrets/debug.keystore
         cd android/app && sh ./download_build_dependencies.sh
         cd .. && ./gradlew --no-daemon assemble
     - name: Upload apks
