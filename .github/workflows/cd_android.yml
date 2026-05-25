@@ -27,7 +27,7 @@ jobs:
         java -version
     - name: Update Environment
       run: |
-        mkdir -p ~/.android
+        mkdir -p secrets/debug.keystore
         echo $DEBUG_CERTIFICATE | base64 -d > ~/.android/debug.keystore
     - name: Compile Android
       run: |

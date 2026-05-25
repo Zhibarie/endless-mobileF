@@ -55,8 +55,9 @@ jobs:
         java -version
     - name: Compile Android
       run: |
-        mkdir -p secrets
-        echo $DEBUG_CERTIFICATE | base64 -d > secrets/debug.keystore
+        mkdir -p android/secrets
+        echo $DEBUG_CERTIFICATE | base64 -d > android/secrets/debug.keystore
+        ls -l android/secrets
         cd android/app && sh ./download_build_dependencies.sh
         cd .. && ./gradlew --no-daemon assemble
     - name: Upload apks

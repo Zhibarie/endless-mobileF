@@ -64,7 +64,7 @@ android {
     signingConfigs {
         debug
         {
-            def customKeystore = file("../../secrets/debug/keystore")
+            def customKeystore = file("${rootDir}/../secrets/debug/keystore")
             if (customKeystore.exists())
             {
                 // Injected by CI
