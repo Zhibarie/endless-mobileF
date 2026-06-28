@@ -146,8 +146,8 @@ namespace {
 		}
 	}
 
-	const char *const FONT_14_NAME = "font/ubuntu14r.png";
-	const char *const FONT_18_NAME = "font/ubuntu18r.png";
+	const char *const FONT_14_NAME = "font/ubuntu14r";
+	const char *const FONT_18_NAME = "font/ubuntu18r";
 }
 
 

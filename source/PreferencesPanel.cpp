@@ -1028,9 +1028,9 @@ void PreferencesPanel::DrawSettings()
 		"\t",
 		"Windows Options",
 		TITLE_BAR_THEME,
-		WINDOW_ROUNDING
+		WINDOW_ROUNDING,
 #endif
-		, "\t",
+		"\t",
 		"Touchscreen",
 		"Automatic chase",
 		"Show buttons on map",
