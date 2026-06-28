@@ -19,6 +19,7 @@ this program. If not, see <https://www.gnu.org/licenses/>.
 #include "text/Alignment.h"
 #include "audio/Audio.h"
 #include "Color.h"
+#include "CustomEvents.h"
 #include "DialogPanel.h"
 #include "Files.h"
 #include "text/Font.h"
@@ -72,6 +73,7 @@ namespace {
 	const string CAMERA_ACCELERATION = "Camera acceleration";
 	const string LARGE_GRAPHICS_REDUCTION = "Reduce large graphics";
 	const string CLOAK_OUTLINE = "Cloaked ship outlines";
+	const string TEXTURE_FILTERING = "Texture filtering";
 	const string STATUS_OVERLAYS_ALL = "Show status overlays";
 	const string STATUS_OVERLAYS_FLAGSHIP = "   Show flagship overlay";
 	const string STATUS_OVERLAYS_ESCORT = "   Show escort overlays";
@@ -101,6 +103,7 @@ namespace {
 	const string BLOCK_SCREEN_SAVER = "Block screen saver";
 	const string TRIBUTE_CONFIRMATION = "Tribute confirmation";
 	const string AMMO_REFILL = "Auto refill ammo";
+	const string TEXT_ALIGNMENT = "Text alignment";
 #ifdef _WIN32
 	const string TITLE_BAR_THEME = "Title bar theme";
 	const string WINDOW_ROUNDING = "Window rounding";
@@ -950,6 +953,7 @@ void PreferencesPanel::DrawSettings()
 		"Show hyperspace flash",
 		EXTENDED_JUMP_EFFECTS,
 		CLOAK_OUTLINE,
+		TEXTURE_FILTERING,
 		"\t",
 		"Performance",
 		"Show CPU / GPU load",
@@ -963,12 +967,12 @@ void PreferencesPanel::DrawSettings()
 		"Hide unexplored map regions",
 		"Show escort systems on map",
 		"Show stored outfits on map",
+		"Parenthesize trade profits",
 		"",
 		"Trading",
-		"'Sell Outfits' without outfitter",
-		"Confirm 'Sell Outfits' button",
-		"Confirm 'Sell Minables' button",
-		"Show parenthesis",
+		"Sell outfits without outfitter",
+		"Confirm selling outfits",
+		"Confirm selling minables",
 		"",
 		"Gameplay",
 		TRIBUTE_CONFIRMATION,
@@ -1018,7 +1022,8 @@ void PreferencesPanel::DrawSettings()
 		TOOLTIP_ACTIVATION,
 		DATE_FORMAT,
 		NOTIFY_ON_DEST,
-		"Save message log"
+		"Save message log",
+		TEXT_ALIGNMENT,
 #ifdef _WIN32
 		"\t",
 		"Windows Options",
@@ -1148,6 +1153,11 @@ void PreferencesPanel::DrawSettings()
 		else if(setting == CLOAK_OUTLINE)
 		{
 			text = Preferences::Has(CLOAK_OUTLINE) ? "fancy" : "fast";
+			isOn = true;
+		}
+		else if(setting == TEXTURE_FILTERING)
+		{
+			text = Preferences::Has("Texture filtering") ? "linear" : "nearest";
 			isOn = true;
 		}
 		else if(setting == AUTO_AIM_SETTING)
@@ -1282,6 +1292,11 @@ void PreferencesPanel::DrawSettings()
 		{
 			isOn = Preferences::GetAmmoRefill() != Preferences::AmmoRefill::NEVER;
 			text = Preferences::AmmoRefillSetting();
+		}
+		else if(setting == TEXT_ALIGNMENT)
+		{
+			isOn = true;
+			text = Preferences::TextAlignmentSetting();
 		}
 #ifdef _WIN32
 		else if(setting == TITLE_BAR_THEME)
@@ -1651,6 +1666,11 @@ void PreferencesPanel::HandleSettingsString(const string &str, Point cursorPosit
 		Preferences::ToggleTributeConfirmation();
 	else if(str == AMMO_REFILL)
 		Preferences::ToggleAmmoRefill();
+	else if(str == TEXT_ALIGNMENT)
+	{
+		Preferences::ToggleTextAlignment();
+		CustomEvents::SendAdjustText();
+	}
 #ifdef _WIN32
 	else if(str == TITLE_BAR_THEME)
 		Preferences::ToggleTitleBarTheme();

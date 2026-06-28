@@ -95,6 +95,7 @@ public:
 	bool IsEmpty() const;
 
 	void AdjustViewport() const;
+	void AdjustTextDisplay() const;
 
 	// Get the current mouse position.
 	static Point GetMouse();

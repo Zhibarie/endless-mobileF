@@ -2493,19 +2493,25 @@ void Engine::HandleMouseClicks()
 			}
 		}
 
+	MouseButton secondaryMouseButton = isMouseTurningEnabled ? MouseButton::MIDDLE : MouseButton::RIGHT;
 	bool clickedAsteroid = false;
 	if(clickTarget)
 	{
-		UI::PlaySound(UI::UISound::TARGET);
-		if(mouseButton == MouseButton::RIGHT)
+		if(mouseButton == secondaryMouseButton)
+		{
+			UI::PlaySound(UI::UISound::TARGET);
 			ai.IssueShipTarget(clickTarget);
-		else
+		}
+		else if(mouseButton == MouseButton::LEFT)
 		{
 			// Left click: has your flagship select or board the target.
 			if(clickTarget == flagship->GetTargetShip())
 			{
 				if(AI::CanBoard(*flagship, *clickTarget))
+				{
+					UI::PlaySound(UI::UISound::TARGET);
 					activeCommands |= Command::BOARD;
+				}
 				else
 				{
 					// if this is the only selected ship, then deselect it
@@ -2519,6 +2525,7 @@ void Engine::HandleMouseClicks()
 			}
 			else
 			{
+				UI::PlaySound(UI::UISound::TARGET);
 				flagship->SetTargetShip(clickTarget);
 				if(clickTarget->IsYours())
 					player.SelectEscort(clickTarget.get(), hasShift);
@@ -2540,13 +2547,12 @@ void Engine::HandleMouseClicks()
 				clickedAsteroid = true;
 				clickRange = range;
 				flagship->SetTargetAsteroid(minable);
-				if(mouseButton == MouseButton::RIGHT)
+				if(mouseButton == secondaryMouseButton)
 					ai.IssueAsteroidTarget(minable);
 			}
 		}
 	}
-	if(!clickTarget && !clickedAsteroid
-		&& mouseButton == (isMouseTurningEnabled ? MouseButton::MIDDLE : MouseButton::RIGHT))
+	if(!clickTarget && !clickedAsteroid && mouseButton == secondaryMouseButton)
 	{
 		UI::PlaySound(UI::UISound::TARGET);
 		ai.IssueMoveTarget(clickPoint + camera.Center(), playerSystem);
@@ -2896,7 +2902,9 @@ void Engine::DoWeather(Weather &weather)
 		for(Body *body : affectedShips)
 		{
 			Ship *hit = static_cast<Ship *>(body);
-			hit->TakeDamage(visuals, damage.CalculateDamage(*hit), nullptr);
+			int eventType = hit->TakeDamage(visuals, damage.CalculateDamage(*hit), nullptr);
+			if(eventType)
+				eventQueue.emplace_back(nullptr, hit->shared_from_this(), eventType);
 		}
 	}
 }

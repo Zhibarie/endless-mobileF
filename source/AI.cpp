@@ -531,8 +531,8 @@ void AI::UpdateKeys(PlayerInfo &player, const Command &activeCommands)
 		for(const auto &it : player.Ships())
 			if(!it->IsParked() && it->CloakingSpeed())
 			{
-				isCloaking = !isCloaking;
-				Messages::Add(*GameData::Messages().Get(isCloaking ?
+				player.SetCloaking(!player.IsCloaking());
+				Messages::Add(*GameData::Messages().Get(player.IsCloaking() ?
 					"engaging cloaking device" : "disengaging cloaking device"));
 				break;
 			}
@@ -795,12 +795,12 @@ void AI::Step(Command &activeCommands)
 				command |= Command::DEPLOY;
 				Deploy(*it, !fightersRetreat);
 			}
-			if(isCloaking)
+			if(player.IsCloaking())
 				command |= Command::CLOAK;
 		}
 
 		// Cloak if the AI considers it appropriate.
-		if(!it->IsYours() || !isCloaking)
+		if(!it->IsYours() || !player.IsCloaking())
 			if(DoCloak(*it, command))
 			{
 				// The ship chose to retreat from its target, e.g. to repair.
@@ -2157,8 +2157,21 @@ void AI::MoveIndependent(Ship &ship, Command &command)
 	else if(ship.GetTargetStellar())
 	{
 		MoveToPlanet(ship, command);
-		if(!shouldStay && ship.Attributes().Get("fuel capacity") && ship.GetTargetStellar()->HasSprite()
-				&& ship.GetTargetStellar()->GetPlanet() && ship.GetTargetStellar()->GetPlanet()->CanLand(ship))
+		const StellarObject *targetStellar = ship.GetTargetStellar();
+		bool shouldLandOnTarget = [shouldStay, targetStellar, ship]() {
+			if(shouldStay)
+				return false;
+			if(!targetStellar->HasSprite())
+				return false;
+			if(!targetStellar->GetPlanet())
+				return false;
+			if(!targetStellar->GetPlanet()->CanLand(ship))
+				return false;
+			if(!ship.Attributes().Get("fuel capacity") && !targetStellar->GetPlanet()->IsWormhole())
+				return false;
+			return true;
+		}();
+		if(shouldLandOnTarget)
 			command |= Command::LAND;
 		else if(ship.Position().Distance(ship.GetTargetStellar()->Position()) < 100.)
 			ship.SetTargetStellar(nullptr);
@@ -5059,7 +5072,7 @@ void AI::MovePlayer(Ship &ship, Command &activeCommands)
 		command |= Command::DEPLOY;
 		Deploy(ship, !Preferences::Has("Damaged fighters retreat"));
 	}
-	if(isCloaking)
+	if(player.IsCloaking())
 		command |= Command::CLOAK;
 
 	ship.SetCommands(command);
