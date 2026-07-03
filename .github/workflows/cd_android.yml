@@ -17,7 +17,6 @@ jobs:
         DEBUG_CERTIFICATE: ${{ secrets.ANDROID_DEBUG_KEYSTORE }}
     steps:
     - uses: actions/checkout@v2
-
     - name: Set up our JDK environment
       uses: actions/setup-java@v1.4.3
       with:
@@ -25,12 +24,10 @@ jobs:
     - name: Print toolchain versions
       run: |
         java -version
-    - name: Update Environment
-      run: |
-        mkdir -p secrets/debug.keystore
-        echo $DEBUG_CERTIFICATE | base64 -d > ~/.android/debug.keystore
     - name: Compile Android
       run: |
+        mkdir -p ~/.android/
+        echo $DEBUG_CERTIFICATE | base64 -d > ~/.android/debug.keystore
         cd android/app && sh ./download_build_dependencies.sh
         cd .. && ./gradlew --no-daemon assemble
     - name: Upload apks
