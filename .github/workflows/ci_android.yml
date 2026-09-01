@@ -1,5 +1,9 @@
 name: CI
 
+permissions:
+  contents: write
+  packages: write
+
 on:
   push:
     # Run for pushes to master or a version branch, e.g. a PR was merged ...
@@ -29,6 +33,7 @@ on:
     - 'CMakeLists.txt'
     - 'CMakePresets.json'
     - keys.txt
+  workflow_dispatch:
 
 
 concurrency:
@@ -45,11 +50,14 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         DEBUG_CERTIFICATE: ${{ secrets.ANDROID_DEBUG_KEYSTORE }}
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up our JDK environment
-      uses: actions/setup-java@v1.4.3
+    - uses: actions/checkout@v4
       with:
-        java-version: 21
+        fetch-depth: 0
+    - name: Set up our JDK environment
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
     - name: Print toolchain versions
       run: |
         java -version
@@ -74,34 +82,45 @@ jobs:
       run: |
         echo "GITHUB_USER=$( echo ${{ github.repository }} | cut -d/ -f1 )" >> $GITHUB_ENV
         echo "GITHUB_REPO=$( echo ${{ github.repository }} | cut -d/ -f2 )" >> $GITHUB_ENV
+    - name: Configure git for push
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
     - name: Move/Create continuous tag
       run: |
         git tag --force continuous ${{ github.sha }}
         git push --tags --force
     - name: Setup continuous release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         DESCRIPTION="Triggered on $(date -u '+%Y/%m/%d, %H:%M') UTC by commit ${{ github.sha }} (@${{ github.actor }})
         This is an automated build of the latest source. It may be unstable or even crash, corrupt your save or eat your kitten. Use with caution!
         https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-        echo $DESCRIPTION
-        echo $GITHUB_ENV
-        echo $GITHUB_PATH
-        if ! github-release info -t continuous > /dev/null 2>&1; then
+        echo "$DESCRIPTION"
+        if ! github-release info --user "$GITHUB_USER" --repo "$GITHUB_REPO" --tag continuous > /dev/null 2>&1; then
           github-release release \
+            --user "$GITHUB_USER" \
+            --repo "$GITHUB_REPO" \
             --tag continuous \
             --name "Continuous Build" \
             --description "$DESCRIPTION" \
             --pre-release
         else
           github-release edit \
+            --user "$GITHUB_USER" \
+            --repo "$GITHUB_REPO" \
             --tag continuous \
             --name "Continuous Build" \
-            --description "$DESCRIPTION" \
-            --pre-release
+            --description "$DESCRIPTION"
         fi
         github-release upload \
+          --user "$GITHUB_USER" \
+          --repo "$GITHUB_REPO" \
           --tag continuous \
           --name endless-mobile-debug-latest.apk \
           --replace \
           --file android/app/build/outputs/apk/debug/app-debug.apk
-
