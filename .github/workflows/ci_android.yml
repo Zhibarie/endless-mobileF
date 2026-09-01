@@ -1,0 +1,118 @@
+name: CI
+
+permissions:
+  contents: write
+
+on:
+  push:
+    branches:
+      - android
+    paths:
+    - 'android/**'
+    - 'source/**'
+    - 'data/**'
+    - 'tests/**'
+    - 'shaders/**'
+    - '.github/workflows/**'
+    - 'CMakeLists.txt'
+    - 'CMakePresets.json'
+    - keys.txt
+  pull_request:
+    types: [opened, synchronize]
+    paths:
+    - 'android/**'
+    - 'source/**'
+    - 'data/**'
+    - 'tests/**'
+    - 'shaders/**'
+    - '.github/workflows/**'
+    - 'CMakeLists.txt'
+    - 'CMakePresets.json'
+    - keys.txt
+  workflow_dispatch:
+
+
+concurrency:
+  group: ${{ github.ref }}-${{ github.workflow }}-${{ github.event_name }}
+  cancel-in-progress: true
+
+jobs:
+  build_android:
+    runs-on: ubuntu-latest
+    env:
+        ANDROID_SDK_ROOT: /path/to/sdk
+        ARTIFACT: endless-mobile
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        DEBUG_CERTIFICATE: ${{ secrets.ANDROID_DEBUG_KEYSTORE }}
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Set up JDK
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+
+    - name: Print toolchain versions
+      run: |
+        java -version
+
+    - name: Compile Android
+      run: |
+        mkdir -p ~/.android/
+        echo $DEBUG_CERTIFICATE | base64 -d > ~/.android/debug.keystore
+        ls -l ~/.android
+        cd android/app && sh ./download_build_dependencies.sh
+        cd .. && ./gradlew --no-daemon assemble
+
+    - name: Upload apks
+      uses: actions/upload-artifact@v4
+      with:
+        name: endless-mobile-debug-latest.apk
+        path: android/app/build/outputs/apk/debug/app-debug.apk
+
+    - name: Configure git for push
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+
+    - name: Move/Create continuous tag
+      run: |
+        git tag --force continuous ${{ github.sha }}
+        git push --tags --force
+
+    - name: Setup continuous release and upload APK
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        DESCRIPTION="Triggered on $(date -u '+%Y/%m/%d, %H:%M') UTC by commit ${{ github.sha }} (@${{ github.actor }})
+        This is an automated build of the latest source. It may be unstable or even crash, corrupt your save or eat your kitten. Use with caution!
+        https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+        if gh release view continuous > /dev/null 2>&1; then
+          echo "Release exists, updating..."
+          gh release edit continuous \
+            --title "Continuous Build" \
+            --notes "$DESCRIPTION" \
+            --prerelease
+        else
+          echo "Release does not exist, creating..."
+          gh release create continuous \
+            --title "Continuous Build" \
+            --notes "$DESCRIPTION" \
+            --prerelease \
+            --target android
+        fi
+
+        echo "=== Uploading APK ==="
+        gh release upload continuous \
+          android/app/build/outputs/apk/debug/app-debug.apk \
+          --clobber
+
+        echo "=== Done! ==="
+        echo "APK available at: https://github.com/${{ github.repository }}/releases/tag/continuous"
