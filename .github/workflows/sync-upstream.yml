@@ -1,0 +1,65 @@
+name: Sync Upstream
+
+on:
+  schedule:
+    - cron: "0 */12 * * *"   # cek tiap 6 jam (UTC 00:00, 06:00, 12:00, 18:00)
+  workflow_dispatch:          # bisa juga di-run manual
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-upstream
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout fork
+        uses: actions/checkout@v4
+        with:
+          ref: android
+          fetch-depth: 0
+          token: ${{ secrets.SYNC_TOKEN }}
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Add upstream remote
+        run: |
+          git remote add upstream https://github.com/thewierdnut/endless-mobile.git
+          git fetch upstream
+
+      - name: Check for changes
+        id: check
+        run: |
+          LOCAL=$(git rev-parse HEAD)
+          REMOTE=$(git rev-parse upstream/android)
+          echo "Local:  $LOCAL"
+          echo "Remote: $REMOTE"
+          if [ "$LOCAL" = "$REMOTE" ]; then
+            echo "No changes from upstream"
+            echo "HAS_CHANGES=0" >> $GITHUB_OUTPUT
+          else
+            echo "Upstream has new commits!"
+            echo "HAS_CHANGES=1" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Sync android branch
+        if: steps.check.outputs.HAS_CHANGES == 1
+        run: |
+          git merge upstream/android --no-edit
+          git push origin android
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Sync Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Status: ${{ steps.check.outputs.HAS_CHANGES == '1' && 'Updated' || 'No changes' }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Latest commits:" >> $GITHUB_STEP_SUMMARY
+          git log --oneline -5 >> $GITHUB_STEP_SUMMARY || true
