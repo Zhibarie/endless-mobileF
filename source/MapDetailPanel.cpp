@@ -456,11 +456,18 @@ bool MapDetailPanel::Click(int x, int y, MouseButton button, int clicks)
 	{
 		for(auto &card : planetCards)
 		{
+			// When changing the map mode, explicitly close all child panels (for example, scrollable text boxes).
+			auto removeChildren = [this]()
+			{
+				for(auto &child : GetChildren())
+					RemoveChild(child.get());
+			};
 			MapPlanetCard::ClickAction clickAction = card.Click(x, y, clicks);
 			if(clickAction == MapPlanetCard::ClickAction::GOTO_SHIPYARD)
 			{
 				isStars = false;
 				GetUI().Pop(this);
+				removeChildren();
 				GetUI().Push(new MapShipyardPanel(*this, true));
 				break;
 			}
@@ -468,6 +475,7 @@ bool MapDetailPanel::Click(int x, int y, MouseButton button, int clicks)
 			{
 				isStars = false;
 				GetUI().Pop(this);
+				removeChildren();
 				GetUI().Push(new MapOutfitterPanel(*this, true));
 				break;
 			}
