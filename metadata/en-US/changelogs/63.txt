@@ -1,0 +1,3 @@
+* Pull upstream 0.11.4
+* Fixed compact layout plugin double-drawing its interfaces ("overwrite" nodes are now required by upstream when redefining an interface)
+* Added two new radio button images to the compressed texture set
