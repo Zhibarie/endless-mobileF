@@ -1,3 +1,4 @@
+overwrite
 interface "planet"
 	image "land"
 		center -60 60
@@ -111,6 +112,7 @@ interface "planet"
 		align right
 		pad 10 0
 
+overwrite
 interface "planet (small screen)"
 	image "land"
 		center -60 60
@@ -224,14 +226,17 @@ interface "planet (small screen)"
 		align right
 		pad 10 0
 
+overwrite
 interface "spaceport"
 	box "content"
 		from -300 -61 to 180 214
 
+overwrite
 interface "spaceport (small screen)"
 	box "content"
 		from -300 -61 to 180 214
 
+overwrite
 interface "news"
 	sprite "ui/news"
 		center -160 -186
@@ -248,6 +253,7 @@ interface "news"
 		from -400 -201
 		to 80 10
 
+overwrite
 interface "news (small screen)"
 	sprite "ui/news"
 		center -160 -186
@@ -266,6 +272,7 @@ interface "news (small screen)"
 
 
 # The top of the text panel is the planet dialog is at +70, and it is 500 x 260.
+overwrite
 interface "hiring"
 	label "flagship"
 		center -70 -56
@@ -375,6 +382,7 @@ interface "hiring"
 
 
 
+overwrite
 interface "hiring (small screen)"
 	label "flagship"
 		center -70 -56
@@ -484,6 +492,7 @@ interface "hiring (small screen)"
 
 
 
+overwrite
 interface "trade"
 	box "content"
 		from -310 -63 to 190 194
@@ -567,6 +576,7 @@ interface "trade"
 		center -250 214
 		dimensions 90 30
 
+overwrite
 interface "trade (small screen)"
 	box "content"
 		from -310 -63 to 190 194
@@ -650,6 +660,7 @@ interface "trade (small screen)"
 		center -250 214
 		dimensions 90 30
 
+overwrite
 interface "bank"
 	box "content"
 		from -310 -63 to 190 214
@@ -665,6 +676,7 @@ interface "bank"
 		center 140 214
 		dimensions 80 40
 
+overwrite
 interface "bank (small screen)"
 	box "content"
 		from -310 -63 to 190 214
@@ -680,6 +692,7 @@ interface "bank (small screen)"
 		center 140 214
 		dimensions 80 40
 
+overwrite
 interface "info panel"
 	fill "bg"
 		from 0 0 top left
