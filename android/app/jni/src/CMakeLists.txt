@@ -275,6 +275,7 @@ add_library(main SHARED
    ${CMAKE_SOURCE_DIR}/../../../source/shader/StarField.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/StartConditions.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/StartConditionsPanel.cpp
+   ${CMAKE_SOURCE_DIR}/../../../source/Statistics.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/StellarObject.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/StellarObjectSpriteData.cpp
    ${CMAKE_SOURCE_DIR}/../../../source/StringInterner.cpp

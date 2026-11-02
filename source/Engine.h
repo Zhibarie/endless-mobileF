@@ -97,8 +97,9 @@ public:
 	void Draw() const;
 
 	// Select the object the player clicked on.
-	void Click(const Point &from, const Point &to, bool hasShift, bool hasControl);
-	void RightOrMiddleClick(const Point &point, MouseButton button);
+	void LeftClick(const Point &point, bool hasShift, bool hasControl, int clicks);
+	void ReleaseDrag(const Point &from, const Point &to);
+	void RightOrMiddleClick(const Point &point, MouseButton button, int clicks);
 	void SelectGroup(int group, bool hasShift, bool hasControl);
 
 	// Touchscreen controls
@@ -110,6 +111,8 @@ public:
 	// government; gov projectiles stop targeting the player and player's
 	// projectiles stop targeting gov.
 	void BreakTargeting(const Government *gov);
+
+	void DisengageAutopilot();
 
 
 private:
@@ -196,6 +199,10 @@ private:
 
 
 private:
+	// Determine if the click was within the radar display,
+	// if the clickable radar preference is active.
+	void LocateClick(const Point &point);
+
 	void EnterSystem();
 
 	void CalculateStep();
@@ -334,6 +341,7 @@ private:
 	bool hasShift = false;
 	bool hasControl = false;
 	MouseButton mouseButton = MouseButton::NONE;
+	int numClicks = 0;
 	bool isRadarClick = false;
 	bool isTouch = false;
 	int isFingerDown = -1;

@@ -116,6 +116,12 @@ public:
 	UI &GetUI() const noexcept;
 
 protected:
+	// A lot of different UI elements allow a modifier to change the number of
+	// something you are buying, so the shared function is defined here:
+	static int Modifier();
+
+
+protected:
 	// Only override the ones you need; the default action is to return false.
 	virtual bool KeyDown(SDL_Keycode key, Uint16 mod, const Command &command, bool isNewPress);
 	virtual bool Click(int x, int y, MouseButton button, int clicks);
@@ -160,9 +166,6 @@ protected:
 	// user-defined command key will override it.
 	bool DoKey(SDL_Keycode key, Uint16 mod = 0);
 
-	// A lot of different UI elements allow a modifier to change the number of
-	// something you are buying, so the shared function is defined here:
-	static int Modifier();
 	// Display the given help message if it has not yet been shown
 	// (or if force is set to true). Return true if the message was displayed.
 	bool DoHelp(const std::string &name, bool force = false) const;
@@ -171,7 +174,7 @@ protected:
 	// Add a child. Deferred until next frame.
 	void AddChild(const std::shared_ptr<Panel> &panel);
 	// Remove a child. Deferred until next frame.
-	void RemoveChild(Panel *panel);
+	void RemoveChild(const Panel *panel);
 	// Handle deferred add/remove child operations.
 	void AddOrRemove();
 
@@ -179,95 +182,21 @@ protected:
 private:
 	class Zone : public Rectangle {
 	public:
-		Zone(const Rectangle &rect, const std::function<void()> &fun) : Rectangle(rect), fun(fun) {}
-		Zone(const Rectangle &rect, const std::function<void(const Event &)> &fun)
-			: Rectangle(rect), funDownEvent(fun)
-		{}
-		Zone(const Point &pos, float radius, const std::function<void()> &fun_down):
-			Rectangle(pos, Point()),
-			fun(fun_down),
-			radius(radius)
-		{}
-		Zone(const Point &pos, float radius, const std::function<void(const Event&)> &fun):
-			Rectangle(pos, Point()),
-			funDownEvent(fun),
-			radius(radius)
-		{}
-		Zone(const Rectangle &rect, Command command):
-			Rectangle(rect),
-			command(command),
-			radius(0)
-		{
-			fun = [command]() { Command::InjectOnce(command); };
-		}
-		Zone(const Point &pos, float radius, Command command):
-			Rectangle(pos, Point()),
-			command(command),
-			radius(radius)
-		{
-			fun = [command]() { Command::InjectOnce(command); };
-		}
+		Zone(const Rectangle &rect, const std::function<void()> &fun);
+		Zone(const Rectangle &rect, const std::function<void(const Event &)> &fun);
+		Zone(const Point &pos, float radius, const std::function<void()> &fun_down);
+		Zone(const Point &pos, float radius, const std::function<void(const Event &)> &fun);
+		Zone(const Rectangle &rect, Command command);
+		Zone(const Point &pos, float radius, Command command);
 
-		void Click() const
-		{
-			if(funDownEvent)
-			{
-				Event e{{}, 0, Event::MOUSE};
-				funDownEvent(e);
-			}
-			else
-				fun();
-		}
-		void MouseDown(const Point& pos, int id) const
-		{
-			if (funDownEvent)
-			{
-				Event e{pos, id, Event::MOUSE};
-				funDownEvent(e);
-			}
-			else
-				fun();
-		}
-		void FingerDown(const Point& pos, int id) const
-		{
-			if (funDownEvent)
-			{
-				Event e{pos, id, Event::TOUCH};
-				funDownEvent(e);
-			}
-			else
-				fun();
-		}
-		void ButtonDown(int id) const
-		{
-			if (funDownEvent)
-			{
-				Event e{Center(), id, Event::BUTTON};
-				funDownEvent(e);
-			}
-			else
-				fun();
-		}
-		void AxisDown(int id) const
-		{
-			if (funDownEvent)
-			{
-				Event e{Center(), id, Event::AXIS};
-				funDownEvent(e);
-			}
-			else
-				fun();
-		}
+		void Click() const;
+		void MouseDown(const Point &pos, int id) const;
+		void FingerDown(const Point &pos, int id) const;
+		void ButtonDown(int id) const;
+		void AxisDown(int id) const;
 
-		bool Contains(const Point& p) const
-		{
-			if(radius)
-				return Center().DistanceSquared(p) < radius * radius;
-			else
-				return Rectangle::Contains(p);
-		}
-
-		const Command& ZoneCommand() const { return command; }
+		bool Contains(const Point &p) const;
+		const Command &ZoneCommand() const { return command; }
 
 	private:
 		std::function<void()> fun;
@@ -276,6 +205,8 @@ private:
 		float radius = 0;
 	};
 
+
+private:
 	// The UI class will not directly call the virtual methods, but will call
 	// these instead. These methods will recursively allow child panels to
 	// handle the event first, before calling the virtual method for the derived
