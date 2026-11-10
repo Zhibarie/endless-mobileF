@@ -2627,7 +2627,14 @@ void Engine::HandleTouchEvents()
 		{
 			if(isDoubleTap)
 				activeCommands |= Command::AFTERBURNER;
-			HandleJoystickMovement(clickPoint.Unit() * 32767);
+			// Turn toward the finger. The ship sits at the screen center, so the
+			// finger's screen-center-relative position IS the direction to face.
+			// (Do NOT use clickPoint: at this point it has been converted to world
+			// coordinates by HandleMouseClicks(), so clickPoint.Unit() points from
+			// the world origin and only matches the finger when the ship is near it.)
+			auto fingers = TouchScreen::Points();
+			if(!fingers.empty())
+				HandleJoystickMovement(fingers.front().Unit() * 32767);
 		}
 	}
 }
